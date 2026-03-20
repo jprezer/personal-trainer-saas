@@ -7,6 +7,7 @@ import Cadastro from './pages/Cadastro'
 import Dashboard from './pages/Dashboard'
 import Agenda from './pages/Agenda'
 import Alunos from './pages/Alunos'
+import AlunoDetalhe from './pages/AlunoDetalhe'
 import Configuracoes from './pages/Configuracoes'
 
 export default function App() {
@@ -30,6 +31,11 @@ export default function App() {
           <Route path="/alunos" element={
             <ProtectedRoute>
               <Layout><Alunos /></Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/alunos/:id" element={
+            <ProtectedRoute>
+              <Layout><AlunoDetalhe /></Layout>
             </ProtectedRoute>
           } />
           <Route path="/configuracoes" element={

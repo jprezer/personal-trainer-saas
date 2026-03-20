@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { supabase } from '../lib/supabase'
 
 export default function Cadastro() {
   const [nome, setNome] = useState('')
@@ -19,16 +18,7 @@ export default function Cadastro() {
     setCarregando(true)
 
     try {
-      const { user } = await cadastrar(email, senha, nome)
-
-      if (user) {
-        await supabase.from('profiles').insert({
-          id: user.id,
-          nome,
-          cref: cref || null,
-        })
-      }
-
+      await cadastrar(email, senha, nome)
       navigate('/')
     } catch (err) {
       if (err.message?.includes('already registered')) {
