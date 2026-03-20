@@ -11,10 +11,10 @@ export default function Layout({ children }) {
   }
 
   const links = [
-    { to: '/', label: 'Dashboard', icon: '⌂' },
+    { to: '/', label: 'Início', icon: '⌂' },
     { to: '/agenda', label: 'Agenda', icon: '▦' },
     { to: '/alunos', label: 'Alunos', icon: '◉' },
-    { to: '/configuracoes', label: 'Configurações', icon: '⚙' },
+    { to: '/configuracoes', label: 'Config', icon: '⚙' },
   ]
 
   return (
@@ -44,9 +44,30 @@ export default function Layout({ children }) {
         </div>
       </aside>
 
+      {/* Mobile header */}
+      <header className="mobile-header">
+        <span className="logo">FitAgenda</span>
+        <button className="btn-logout" onClick={handleLogout}>Sair</button>
+      </header>
+
       <main className="main-content">
         {children}
       </main>
+
+      {/* Mobile bottom nav */}
+      <nav className="bottom-nav">
+        {links.map((link) => (
+          <NavLink
+            key={link.to}
+            to={link.to}
+            className={({ isActive }) => `bottom-nav-link ${isActive ? 'active' : ''}`}
+            end={link.to === '/'}
+          >
+            <span className="bottom-nav-icon">{link.icon}</span>
+            <span className="bottom-nav-label">{link.label}</span>
+          </NavLink>
+        ))}
+      </nav>
     </div>
   )
 }

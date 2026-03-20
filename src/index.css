@@ -549,7 +549,6 @@ a:hover {
 
 .input-busca {
   width: 100%;
-  max-width: 320px;
   padding: 10px 12px;
   background: var(--bg2);
   border: 1px solid var(--border);
@@ -1173,32 +1172,142 @@ a:hover {
   font-size: 12px;
 }
 
+/* ========== Mobile Header ========== */
+.mobile-header {
+  display: none;
+}
+
+/* ========== Bottom Nav ========== */
+.bottom-nav {
+  display: none;
+}
+
 /* ========== Responsive ========== */
 @media (max-width: 768px) {
+  /* Esconde sidebar desktop */
   .sidebar {
     display: none;
   }
 
+  /* Mobile header */
+  .mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .mobile-header .logo {
+    font-size: 18px;
+  }
+
+  /* Bottom nav */
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    z-index: 50;
+    padding: 6px 0;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom));
+  }
+
+  .bottom-nav-link {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 0;
+    color: var(--text3);
+    font-size: 10px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .bottom-nav-link.active {
+    color: var(--accent);
+  }
+
+  .bottom-nav-icon {
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .bottom-nav-label {
+    font-size: 10px;
+  }
+
+  /* Layout */
+  .layout {
+    flex-direction: column;
+  }
+
+  /* Main content */
   .main-content {
     margin-left: 0;
-    padding: 20px 16px;
+    padding: 16px;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    min-height: auto;
+    flex: 1;
   }
 
-  .metricas-grid {
-    grid-template-columns: 1fr;
+  /* Page header */
+  .page-header {
+    margin-bottom: 20px;
   }
 
-  .alunos-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
+  .page-header h1 {
+    font-size: 20px;
   }
 
   .page-header-row {
     flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
+  }
+
+  .page-header-row .btn {
+    width: 100%;
+  }
+
+  /* Métricas */
+  .metricas-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .metrica-card {
+    padding: 14px 12px;
+  }
+
+  .metrica-valor {
+    font-size: 24px;
+  }
+
+  .metrica-label {
+    font-size: 11px;
+  }
+
+  /* Alunos */
+  .alunos-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .aluno-detalhe-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
 
   .aluno-detalhe-acoes {
@@ -1209,20 +1318,208 @@ a:hover {
     flex: 1;
   }
 
-  .agenda-grid {
-    grid-template-columns: 1fr;
+  .dados-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  /* Agenda */
+  .agenda-page {
+    max-width: 100%;
   }
 
   .agenda-nav {
+    gap: 8px;
     flex-wrap: wrap;
+    justify-content: center;
   }
 
+  .agenda-nav .btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .agenda-semana-label {
+    font-size: 13px;
+    min-width: auto;
+    width: 100%;
+    order: -1;
+  }
+
+  .agenda-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    min-height: auto;
+  }
+
+  .agenda-dia {
+    min-height: auto;
+    padding: 12px;
+  }
+
+  .agenda-dia-header {
+    margin-bottom: 6px;
+  }
+
+  .agenda-dia-sessoes {
+    gap: 6px;
+  }
+
+  .agenda-sessao {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .agenda-sessao-hora {
+    font-size: 12px;
+  }
+
+  .agenda-sessao-aluno {
+    font-size: 13px;
+  }
+
+  .agenda-add-btn {
+    padding: 6px;
+  }
+
+  /* Sessão detalhe modal */
   .sessao-detalhe-info {
     grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .status-options {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .status-option {
+    font-size: 11px;
+    padding: 5px 12px;
+  }
+
+  /* Forms */
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  /* Modais */
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal {
+    max-width: 100%;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    max-height: 85vh;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  .modal-header {
+    padding: 16px;
+  }
+
+  .modal-actions {
+    gap: 8px;
+  }
+
+  .modal-actions .btn {
+    flex: 1;
+  }
+
+  /* Auth */
+  .auth-page {
+    padding: 16px;
+  }
+
+  .auth-card {
+    padding: 28px 20px;
+  }
+
+  .auth-logo {
+    font-size: 24px;
+  }
+
+  /* Onboarding */
+  .onboarding-card {
+    padding: 28px 20px;
   }
 
   .onboarding-slot-form {
     flex-direction: column;
     align-items: stretch;
+    gap: 8px;
+  }
+
+  .onboarding-slot-form select,
+  .onboarding-slot-form input[type="time"] {
+    width: 100%;
+  }
+
+  .onboarding-actions {
+    gap: 8px;
+  }
+
+  .onboarding-actions .btn {
+    flex: 1;
+  }
+
+  /* Configurações */
+  .tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab {
+    white-space: nowrap;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .config-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .config-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .config-section-header .btn {
+    width: 100%;
+  }
+
+  /* Sessões lista */
+  .sessao-card {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .sessao-hora {
+    font-size: 12px;
+    min-width: 44px;
+  }
+
+  /* Empty state */
+  .empty-state {
+    padding: 32px 16px;
+  }
+
+  /* Aluno detalhe */
+  .aluno-danger-zone {
+    margin-top: 32px;
+  }
+
+  .btn-voltar {
+    margin-bottom: 8px;
   }
 }
