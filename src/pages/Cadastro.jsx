@@ -21,10 +21,13 @@ export default function Cadastro() {
       await cadastrar(email, senha, nome)
       navigate('/')
     } catch (err) {
+      console.error('Erro no cadastro:', err)
       if (err.message?.includes('already registered')) {
         setErro('Este email já está cadastrado')
+      } else if (err.message?.includes('password')) {
+        setErro('A senha deve ter no mínimo 6 caracteres')
       } else {
-        setErro('Erro ao criar conta. Tente novamente.')
+        setErro(err.message || 'Erro ao criar conta. Tente novamente.')
       }
     } finally {
       setCarregando(false)

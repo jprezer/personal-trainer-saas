@@ -9,6 +9,7 @@ import Agenda from './pages/Agenda'
 import Alunos from './pages/Alunos'
 import AlunoDetalhe from './pages/AlunoDetalhe'
 import Configuracoes from './pages/Configuracoes'
+import Onboarding from './pages/Onboarding'
 
 export default function App() {
   return (
@@ -17,6 +18,11 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />
+          <Route path="/onboarding" element={
+            <ProtectedRoute>
+              <Onboarding />
+            </ProtectedRoute>
+          } />
 
           <Route path="/" element={
             <ProtectedRoute>
