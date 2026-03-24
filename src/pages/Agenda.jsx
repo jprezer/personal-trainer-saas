@@ -18,6 +18,7 @@ export default function Agenda() {
   const [modalNova, setModalNova] = useState(false)
   const [formNova, setFormNova] = useState({ aluno_id: '', academia_id: '', data_hora: '', duracao_minutos: 60 })
   const [salvando, setSalvando] = useState(false)
+  const [erroForm, setErroForm] = useState('')
 
   // Modal detalhe sessão
   const [sessaoSelecionada, setSessaoSelecionada] = useState(null)
@@ -69,24 +70,72 @@ export default function Agenda() {
   function abrirModalNova(dia) {
     const dataStr = dia.toISOString().split('T')[0]
     setFormNova({ aluno_id: '', academia_id: '', data_hora: `${dataStr}T08:00`, duracao_minutos: 60 })
+    setErroForm('')
     setModalNova(true)
+  }
+
+  async function verificarSobreposicao(dataHoraISO, duracaoMin, sessaoIdExcluir = null) {
+    const novaInicio = new Date(dataHoraISO)
+    const novaFim = new Date(novaInicio.getTime() + duracaoMin * 60000)
+
+    // Busca sessões do mesmo dia (margem de 24h) para checar sobreposição
+    const diaInicio = new Date(novaInicio)
+    diaInicio.setHours(0, 0, 0, 0)
+    const diaFim = new Date(diaInicio)
+    diaFim.setDate(diaFim.getDate() + 1)
+
+    const { data: sessoesExistentes } = await supabase
+      .from('sessoes')
+      .select('id, data_hora, duracao_minutos, alunos(nome)')
+      .eq('personal_id', user.id)
+      .gte('data_hora', diaInicio.toISOString())
+      .lt('data_hora', diaFim.toISOString())
+      .neq('status', 'cancelada')
+
+    if (!sessoesExistentes) return null
+
+    for (const sessao of sessoesExistentes) {
+      if (sessaoIdExcluir && sessao.id === sessaoIdExcluir) continue
+
+      const existInicio = new Date(sessao.data_hora)
+      const existFim = new Date(existInicio.getTime() + sessao.duracao_minutos * 60000)
+
+      // Sobreposição: novaInicio < existFim AND novaFim > existInicio
+      if (novaInicio < existFim && novaFim > existInicio) {
+        const horaInicio = existInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+        const horaFim = existFim.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+        const nomeAluno = sessao.alunos?.nome || 'aluno'
+        return `Conflito de horário: já existe uma aula com ${nomeAluno} das ${horaInicio} às ${horaFim}`
+      }
+    }
+    return null
   }
 
   async function handleCriarSessao(e) {
     e.preventDefault()
+    setErroForm('')
     setSalvando(true)
     try {
+      const dataHoraISO = new Date(formNova.data_hora).toISOString()
+      const duracao = parseInt(formNova.duracao_minutos)
+
+      const conflito = await verificarSobreposicao(dataHoraISO, duracao)
+      if (conflito) {
+        setErroForm(conflito)
+        return
+      }
+
       const dados = {
         ...formNova,
-        data_hora: new Date(formNova.data_hora).toISOString(),
+        data_hora: dataHoraISO,
         academia_id: formNova.academia_id || null,
-        duracao_minutos: parseInt(formNova.duracao_minutos),
+        duracao_minutos: duracao,
       }
       await supabase.from('sessoes').insert({ ...dados, personal_id: user.id })
       setModalNova(false)
       carregarDados()
     } catch {
-      // erro silencioso
+      setErroForm('Erro ao agendar sessão')
     } finally {
       setSalvando(false)
     }
@@ -175,6 +224,7 @@ export default function Agenda() {
       {/* Modal: Nova sessão */}
       <Modal aberto={modalNova} onFechar={() => setModalNova(false)} titulo="Nova sessão">
         <form onSubmit={handleCriarSessao}>
+          {erroForm && <div className="erro-form">{erroForm}</div>}
           <div className="form-group">
             <label htmlFor="sessao-aluno">Aluno *</label>
             <select id="sessao-aluno" value={formNova.aluno_id} onChange={(e) => setFormNova({ ...formNova, aluno_id: e.target.value })} required>

@@ -717,6 +717,16 @@ a:hover {
   gap: 12px;
 }
 
+.erro-form {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid var(--danger);
+  color: #fca5a5;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+}
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;
