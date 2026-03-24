@@ -24,3 +24,8 @@ export function getDiaSemanaAbrev(num) {
   const dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
   return dias[num] || ''
 }
+
+export function formatMoeda(valor) {
+  if (valor == null) return '—'
+  return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}

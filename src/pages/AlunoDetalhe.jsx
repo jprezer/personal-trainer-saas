@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { formatDataHora } from '../lib/utils'
+import { formatDataHora, formatMoeda } from '../lib/utils'
 import StatusBadge from '../components/StatusBadge'
 import EmptyState from '../components/EmptyState'
 
@@ -189,6 +189,18 @@ export default function AlunoDetalhe() {
                 onChange={(e) => setForm({ ...form, data_nascimento: e.target.value })}
               />
             </div>
+            <div className="form-group">
+              <label htmlFor="valor_aula">Valor da aula (R$)</label>
+              <input
+                id="valor_aula"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0,00"
+                value={form.valor_aula || ''}
+                onChange={(e) => setForm({ ...form, valor_aula: e.target.value })}
+              />
+            </div>
           </div>
 
           <div className="form-group">
@@ -229,6 +241,12 @@ export default function AlunoDetalhe() {
               <div className="dado">
                 <span className="dado-label">Nascimento</span>
                 <span className="dado-valor">{new Date(aluno.data_nascimento + 'T00:00:00').toLocaleDateString('pt-BR')}</span>
+              </div>
+            )}
+            {aluno.valor_aula && (
+              <div className="dado">
+                <span className="dado-label">Valor da aula</span>
+                <span className="dado-valor">{formatMoeda(aluno.valor_aula)}</span>
               </div>
             )}
             <div className="dado">

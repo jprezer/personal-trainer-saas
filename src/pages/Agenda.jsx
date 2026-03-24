@@ -16,7 +16,7 @@ export default function Agenda() {
 
   // Modal nova sessão
   const [modalNova, setModalNova] = useState(false)
-  const [formNova, setFormNova] = useState({ aluno_id: '', academia_id: '', data_hora: '', duracao_minutos: 60 })
+  const [formNova, setFormNova] = useState({ aluno_id: '', academia_id: '', data_hora: '', duracao_minutos: 60, valor: '' })
   const [salvando, setSalvando] = useState(false)
   const [erroForm, setErroForm] = useState('')
 
@@ -50,7 +50,7 @@ export default function Agenda() {
         .gte('data_hora', inicio)
         .lt('data_hora', fim.toISOString())
         .order('data_hora'),
-      supabase.from('alunos').select('id, nome').eq('personal_id', user.id).eq('ativo', true).order('nome'),
+      supabase.from('alunos').select('id, nome, valor_aula').eq('personal_id', user.id).eq('ativo', true).order('nome'),
       supabase.from('personal_academias').select('academia_id, academias(id, nome)').eq('personal_id', user.id),
     ])
 
@@ -69,7 +69,7 @@ export default function Agenda() {
 
   function abrirModalNova(dia) {
     const dataStr = dia.toISOString().split('T')[0]
-    setFormNova({ aluno_id: '', academia_id: '', data_hora: `${dataStr}T08:00`, duracao_minutos: 60 })
+    setFormNova({ aluno_id: '', academia_id: '', data_hora: `${dataStr}T08:00`, duracao_minutos: 60, valor: '' })
     setErroForm('')
     setModalNova(true)
   }
@@ -126,10 +126,11 @@ export default function Agenda() {
       }
 
       const dados = {
-        ...formNova,
-        data_hora: dataHoraISO,
+        aluno_id: formNova.aluno_id,
         academia_id: formNova.academia_id || null,
+        data_hora: dataHoraISO,
         duracao_minutos: duracao,
+        valor: formNova.valor ? parseFloat(formNova.valor) : null,
       }
       await supabase.from('sessoes').insert({ ...dados, personal_id: user.id })
       setModalNova(false)
@@ -227,7 +228,11 @@ export default function Agenda() {
           {erroForm && <div className="erro-form">{erroForm}</div>}
           <div className="form-group">
             <label htmlFor="sessao-aluno">Aluno *</label>
-            <select id="sessao-aluno" value={formNova.aluno_id} onChange={(e) => setFormNova({ ...formNova, aluno_id: e.target.value })} required>
+            <select id="sessao-aluno" value={formNova.aluno_id} onChange={(e) => {
+              const alunoId = e.target.value
+              const aluno = alunos.find((a) => a.id === alunoId)
+              setFormNova({ ...formNova, aluno_id: alunoId, valor: aluno?.valor_aula || '' })
+            }} required>
               <option value="">Selecione...</option>
               {alunos.map((a) => (
                 <option key={a.id} value={a.id}>{a.nome}</option>
@@ -243,6 +248,10 @@ export default function Agenda() {
               <label htmlFor="sessao-duracao">Duração (min)</label>
               <input id="sessao-duracao" type="number" value={formNova.duracao_minutos} onChange={(e) => setFormNova({ ...formNova, duracao_minutos: e.target.value })} min={15} step={15} />
             </div>
+          </div>
+          <div className="form-group">
+            <label htmlFor="sessao-valor">Valor (R$)</label>
+            <input id="sessao-valor" type="number" step="0.01" min="0" placeholder="0,00" value={formNova.valor} onChange={(e) => setFormNova({ ...formNova, valor: e.target.value })} />
           </div>
           {academias.length > 0 && (
             <div className="form-group">

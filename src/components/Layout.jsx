@@ -14,6 +14,7 @@ export default function Layout({ children }) {
     { to: '/', label: 'Início', icon: '⌂' },
     { to: '/agenda', label: 'Agenda', icon: '▦' },
     { to: '/alunos', label: 'Alunos', icon: '◉' },
+    { to: '/financeiro', label: 'Financeiro', icon: '$' },
     { to: '/configuracoes', label: 'Config', icon: '⚙' },
   ]
 

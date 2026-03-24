@@ -9,6 +9,7 @@ import Agenda from './pages/Agenda'
 import Alunos from './pages/Alunos'
 import AlunoDetalhe from './pages/AlunoDetalhe'
 import Configuracoes from './pages/Configuracoes'
+import Financeiro from './pages/Financeiro'
 import Onboarding from './pages/Onboarding'
 
 export default function App() {
@@ -42,6 +43,11 @@ export default function App() {
           <Route path="/alunos/:id" element={
             <ProtectedRoute>
               <Layout><AlunoDetalhe /></Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/financeiro" element={
+            <ProtectedRoute>
+              <Layout><Financeiro /></Layout>
             </ProtectedRoute>
           } />
           <Route path="/configuracoes" element={
