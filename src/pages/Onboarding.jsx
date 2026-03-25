@@ -62,7 +62,7 @@ export default function Onboarding() {
         await supabase.from('disponibilidades').insert(disps)
       }
 
-      navigate('/')
+      navigate('/dashboard')
     } catch {
       // erro silencioso
     } finally {
@@ -111,7 +111,7 @@ export default function Onboarding() {
             </div>
 
             <div className="onboarding-actions">
-              <button className="btn btn-secondary" onClick={() => navigate('/')}>Pular</button>
+              <button className="btn btn-secondary" onClick={() => navigate('/dashboard')}>Pular</button>
               <button className="btn btn-primary" onClick={() => setEtapa(2)}>Continuar</button>
             </div>
           </div>

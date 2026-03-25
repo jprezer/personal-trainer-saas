@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
+import LandingPage from './pages/LandingPage'
 import Login from './pages/Login'
 import Cadastro from './pages/Cadastro'
 import Dashboard from './pages/Dashboard'
@@ -17,6 +18,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/onboarding" element={
@@ -25,7 +27,7 @@ export default function App() {
             </ProtectedRoute>
           } />
 
-          <Route path="/" element={
+          <Route path="/dashboard" element={
             <ProtectedRoute>
               <Layout><Dashboard /></Layout>
             </ProtectedRoute>

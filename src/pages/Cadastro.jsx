@@ -19,7 +19,7 @@ export default function Cadastro() {
 
     try {
       await cadastrar(email, senha, nome)
-      navigate('/')
+      navigate('/dashboard')
     } catch (err) {
       console.error('Erro no cadastro:', err)
       if (err.message?.includes('already registered')) {

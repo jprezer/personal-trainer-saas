@@ -11,7 +11,7 @@ export default function Layout({ children }) {
   }
 
   const links = [
-    { to: '/', label: 'Início', icon: '⌂' },
+    { to: '/dashboard', label: 'Início', icon: '⌂' },
     { to: '/agenda', label: 'Agenda', icon: '▦' },
     { to: '/alunos', label: 'Alunos', icon: '◉' },
     { to: '/financeiro', label: 'Financeiro', icon: '$' },
@@ -31,7 +31,7 @@ export default function Layout({ children }) {
               key={link.to}
               to={link.to}
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-              end={link.to === '/'}
+              end={link.to === '/dashboard'}
             >
               <span className="nav-icon">{link.icon}</span>
               {link.label}
@@ -62,7 +62,7 @@ export default function Layout({ children }) {
             key={link.to}
             to={link.to}
             className={({ isActive }) => `bottom-nav-link ${isActive ? 'active' : ''}`}
-            end={link.to === '/'}
+            end={link.to === '/dashboard'}
           >
             <span className="bottom-nav-icon">{link.icon}</span>
             <span className="bottom-nav-label">{link.label}</span>
