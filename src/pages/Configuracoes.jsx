@@ -24,32 +24,15 @@ export default function Configuracoes() {
         <button className={`tab ${tab === 'perfil' ? 'tab-ativo' : ''}`} onClick={() => setTab('perfil')}>
           Perfil
         </button>
-        <button className={`tab ${tab === 'academias' ? 'tab-ativo' : ''}`} onClick={() => setTab('academias')}>
-          Academias
+        <button className="tab tab-desabilitado" disabled title="Em breve">
+          Academias <span className="badge-breve">em breve</span>
         </button>
-        <button className={`tab ${tab === 'disponibilidade' ? 'tab-ativo' : ''}`} onClick={() => setTab('disponibilidade')}>
-          Disponibilidade
+        <button className="tab tab-desabilitado" disabled title="Em breve">
+          Disponibilidade <span className="badge-breve">em breve</span>
         </button>
       </div>
 
       {tab === 'perfil' && <TabPerfil profile={profile} onSalvar={atualizarProfile} />}
-      {tab === 'academias' && (
-        <TabAcademias
-          academias={academias}
-          loading={loadingAcademias}
-          onAdicionar={adicionarAcademia}
-          onRemover={removerAcademia}
-        />
-      )}
-      {tab === 'disponibilidade' && (
-        <TabDisponibilidade
-          disponibilidades={disponibilidades}
-          academias={academias}
-          loading={loadingDisp}
-          onCriar={criarDisponibilidade}
-          onExcluir={excluirDisponibilidade}
-        />
-      )}
     </div>
   )
 }

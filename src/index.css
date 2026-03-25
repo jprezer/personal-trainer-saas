@@ -770,6 +770,26 @@ a:hover {
   border-bottom-color: var(--accent);
 }
 
+.tab-desabilitado {
+  opacity: 0.4;
+  cursor: not-allowed;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge-breve {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  color: var(--text2);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
 /* ========== Config Section ========== */
 .config-section {
   margin-top: 8px;
