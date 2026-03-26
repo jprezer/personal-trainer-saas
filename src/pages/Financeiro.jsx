@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import { formatMoeda } from '../lib/utils'
 import EmptyState from '../components/EmptyState'
+import CustomSelect from '../components/CustomSelect'
 
 export default function Financeiro() {
   const { user } = useAuth()
@@ -136,25 +137,23 @@ export default function Financeiro() {
 
           {/* Filtros */}
           <div className="financeiro-filtros">
-            <select
+            <CustomSelect
               value={filtroStatus}
-              onChange={(e) => setFiltroStatus(e.target.value)}
-              className="financeiro-filtro-select"
-            >
-              <option value="todos">Todos</option>
-              <option value="pago">Pagos</option>
-              <option value="pendente">Pendentes</option>
-            </select>
-            <select
+              onChange={(val) => setFiltroStatus(val)}
+              options={[
+                { value: 'todos', label: 'Todos' },
+                { value: 'pago', label: 'Pagos' },
+                { value: 'pendente', label: 'Pendentes' },
+              ]}
+            />
+            <CustomSelect
               value={filtroAluno}
-              onChange={(e) => setFiltroAluno(e.target.value)}
-              className="financeiro-filtro-select"
-            >
-              <option value="">Todos os alunos</option>
-              {alunos.map((a) => (
-                <option key={a.id} value={a.id}>{a.nome}</option>
-              ))}
-            </select>
+              onChange={(val) => setFiltroAluno(val)}
+              options={[
+                { value: '', label: 'Todos os alunos' },
+                ...alunos.map((a) => ({ value: a.id, label: a.nome })),
+              ]}
+            />
           </div>
 
           {/* Lista de sessões */}

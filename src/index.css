@@ -1216,10 +1216,7 @@ a:hover {
   margin-bottom: 20px;
 }
 
-.financeiro-filtro-select {
-  flex: 1;
-  max-width: 220px;
-}
+/* .financeiro-filtro-select substituído por CustomSelect */
 
 .financeiro-lista {
   display: flex;
