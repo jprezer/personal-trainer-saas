@@ -130,8 +130,8 @@ export default function Financeiro() {
           </div>
 
           {sessoesSeValue > 0 && (
-            <div className="erro-form" style={{ background: 'rgba(250, 204, 21, 0.12)', borderColor: 'var(--yellow)', color: '#fde68a' }}>
-              {sessoesSeValue} sessão(ões) sem valor definido. Defina o valor da aula no cadastro do aluno ou clique no valor para editar.
+            <div className="financeiro-aviso">
+              ⚠️ {sessoesSeValue} sessão(ões) sem valor definido. Defina o valor da aula no cadastro do aluno ou clique no valor para editar.
             </div>
           )}
 
