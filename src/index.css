@@ -1204,6 +1204,120 @@ a:hover {
   font-size: 12px;
 }
 
+/* ========== Alunos — novos campos ========== */
+.form-section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  padding: 10px 0 6px;
+  border-top: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+
+.dias-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.dia-pill {
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border2);
+  background: var(--bg);
+  color: var(--text2);
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: var(--sans);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.dia-pill:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.dia-pill-ativo {
+  background: var(--green-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.dias-pills-readonly .dia-pill {
+  cursor: default;
+  pointer-events: none;
+}
+
+.dias-pills-readonly .dia-pill-inativo {
+  opacity: 0.3;
+}
+
+.cobranca-toggle {
+  display: flex;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+  width: fit-content;
+}
+
+.cobranca-opt {
+  padding: 7px 20px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: var(--sans);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cobranca-opt:hover {
+  color: var(--text);
+}
+
+.cobranca-opt-ativo {
+  background: var(--bg);
+  color: var(--accent);
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.aluno-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+}
+
+.aluno-card-local {
+  font-size: 0.75rem;
+  color: var(--text2);
+}
+
+.aluno-card-dias {
+  font-size: 0.75rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.aluno-treino-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
 /* ========== Mobile Header ========== */
 .mobile-header {
   display: none;

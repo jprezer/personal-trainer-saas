@@ -3,6 +3,42 @@ import { useNavigate } from 'react-router-dom'
 import useAlunos from '../hooks/useAlunos'
 import Modal from '../components/Modal'
 import EmptyState from '../components/EmptyState'
+import CustomSelect from '../components/CustomSelect'
+
+const DIAS = [
+  { valor: 1, label: 'Seg' },
+  { valor: 2, label: 'Ter' },
+  { valor: 3, label: 'Qua' },
+  { valor: 4, label: 'Qui' },
+  { valor: 5, label: 'Sex' },
+  { valor: 6, label: 'Sáb' },
+  { valor: 0, label: 'Dom' },
+]
+
+const OBJETIVOS = [
+  { value: '', label: 'Selecione...' },
+  { value: 'emagrecimento', label: 'Emagrecimento' },
+  { value: 'hipertrofia', label: 'Hipertrofia' },
+  { value: 'condicionamento', label: 'Condicionamento' },
+  { value: 'reabilitação', label: 'Reabilitação' },
+  { value: 'qualidade de vida', label: 'Qualidade de vida' },
+  { value: 'outro', label: 'Outro' },
+]
+
+const formInicial = {
+  nome: '',
+  telefone: '',
+  email: '',
+  data_nascimento: '',
+  objetivo: '',
+  observacoes: '',
+  local_treino: '',
+  dias_treino: [],
+  formato_cobranca: 'por_aula',
+  valor_aula: '',
+  valor_mensal: '',
+  horario_padrao: '',
+}
 
 export default function Alunos() {
   const { alunos, loading, criarAluno } = useAlunos()
@@ -11,26 +47,28 @@ export default function Alunos() {
   const [modalAberto, setModalAberto] = useState(false)
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState('')
-  const [form, setForm] = useState({
-    nome: '',
-    telefone: '',
-    email: '',
-    data_nascimento: '',
-    objetivo: '',
-    observacoes: '',
-  })
+  const [form, setForm] = useState(formInicial)
 
   const alunosFiltrados = alunos.filter((a) =>
     a.nome.toLowerCase().includes(busca.toLowerCase())
   )
-
   const alunosAtivos = alunosFiltrados.filter((a) => a.ativo)
   const alunosInativos = alunosFiltrados.filter((a) => !a.ativo)
 
   function abrirModal() {
-    setForm({ nome: '', telefone: '', email: '', data_nascimento: '', objetivo: '', observacoes: '' })
+    setForm(formInicial)
     setErro('')
     setModalAberto(true)
+  }
+
+  function toggleDia(dia) {
+    setForm((prev) => {
+      const dias = prev.dias_treino || []
+      return {
+        ...prev,
+        dias_treino: dias.includes(dia) ? dias.filter((d) => d !== dia) : [...dias, dia],
+      }
+    })
   }
 
   async function handleSubmit(e) {
@@ -43,6 +81,10 @@ export default function Alunos() {
       if (!dados.data_nascimento) dados.data_nascimento = null
       if (!dados.email) dados.email = null
       if (!dados.telefone) dados.telefone = null
+      if (!dados.horario_padrao) dados.horario_padrao = null
+      if (!dados.valor_aula) dados.valor_aula = null
+      if (!dados.valor_mensal) dados.valor_mensal = null
+      if (!dados.local_treino) dados.local_treino = null
 
       await criarAluno(dados)
       setModalAberto(false)
@@ -103,6 +145,19 @@ export default function Alunos() {
                     {aluno.objetivo && <span className="aluno-objetivo">{aluno.objetivo}</span>}
                   </div>
                 </div>
+                <div className="aluno-card-meta">
+                  {aluno.local_treino && (
+                    <span className="aluno-card-local">📍 {aluno.local_treino}</span>
+                  )}
+                  {aluno.dias_treino?.length > 0 && (
+                    <span className="aluno-card-dias">
+                      {aluno.dias_treino
+                        .sort((a, b) => (a === 0 ? 7 : a) - (b === 0 ? 7 : b))
+                        .map((d) => DIAS.find((x) => x.valor === d)?.label)
+                        .join(' · ')}
+                    </span>
+                  )}
+                </div>
                 {aluno.telefone && <span className="aluno-telefone">{aluno.telefone}</span>}
               </div>
             ))}
@@ -136,6 +191,9 @@ export default function Alunos() {
       <Modal aberto={modalAberto} onFechar={() => setModalAberto(false)} titulo="Novo aluno">
         <form onSubmit={handleSubmit}>
           {erro && <div className="alert alert-erro">{erro}</div>}
+
+          {/* ── Dados pessoais ── */}
+          <div className="form-section-label">Dados pessoais</div>
 
           <div className="form-group">
             <label htmlFor="nome">Nome *</label>
@@ -183,20 +241,12 @@ export default function Alunos() {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="objetivo">Objetivo</label>
-              <select
-                id="objetivo"
+              <label>Objetivo</label>
+              <CustomSelect
                 value={form.objetivo}
-                onChange={(e) => setForm({ ...form, objetivo: e.target.value })}
-              >
-                <option value="">Selecione...</option>
-                <option value="emagrecimento">Emagrecimento</option>
-                <option value="hipertrofia">Hipertrofia</option>
-                <option value="condicionamento">Condicionamento</option>
-                <option value="reabilitação">Reabilitação</option>
-                <option value="qualidade de vida">Qualidade de vida</option>
-                <option value="outro">Outro</option>
-              </select>
+                onChange={(val) => setForm({ ...form, objetivo: val })}
+                options={OBJETIVOS}
+              />
             </div>
           </div>
 
@@ -207,9 +257,101 @@ export default function Alunos() {
               value={form.observacoes}
               onChange={(e) => setForm({ ...form, observacoes: e.target.value })}
               placeholder="Lesões, restrições, preferências..."
-              rows={3}
+              rows={2}
             />
           </div>
+
+          {/* ── Configuração de treino ── */}
+          <div className="form-section-label" style={{ marginTop: 8 }}>Treino</div>
+
+          <div className="form-row">
+            <div className="form-group" style={{ flex: 2 }}>
+              <label htmlFor="local_treino">Local / Academia</label>
+              <input
+                id="local_treino"
+                type="text"
+                value={form.local_treino}
+                onChange={(e) => setForm({ ...form, local_treino: e.target.value })}
+                placeholder="Ex: Smart Fit, Academia X, Ar livre..."
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="horario_padrao">Horário padrão</label>
+              <input
+                id="horario_padrao"
+                type="time"
+                value={form.horario_padrao}
+                onChange={(e) => setForm({ ...form, horario_padrao: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Dias de treino</label>
+            <div className="dias-pills">
+              {DIAS.map((dia) => (
+                <button
+                  key={dia.valor}
+                  type="button"
+                  className={`dia-pill ${(form.dias_treino || []).includes(dia.valor) ? 'dia-pill-ativo' : ''}`}
+                  onClick={() => toggleDia(dia.valor)}
+                >
+                  {dia.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Financeiro ── */}
+          <div className="form-section-label" style={{ marginTop: 8 }}>Cobrança</div>
+
+          <div className="form-group">
+            <label>Formato de cobrança</label>
+            <div className="cobranca-toggle">
+              <button
+                type="button"
+                className={`cobranca-opt ${form.formato_cobranca === 'por_aula' ? 'cobranca-opt-ativo' : ''}`}
+                onClick={() => setForm({ ...form, formato_cobranca: 'por_aula' })}
+              >
+                Por aula
+              </button>
+              <button
+                type="button"
+                className={`cobranca-opt ${form.formato_cobranca === 'mensal' ? 'cobranca-opt-ativo' : ''}`}
+                onClick={() => setForm({ ...form, formato_cobranca: 'mensal' })}
+              >
+                Mensal
+              </button>
+            </div>
+          </div>
+
+          {form.formato_cobranca === 'por_aula' ? (
+            <div className="form-group">
+              <label htmlFor="valor_aula">Valor por aula (R$)</label>
+              <input
+                id="valor_aula"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0,00"
+                value={form.valor_aula}
+                onChange={(e) => setForm({ ...form, valor_aula: e.target.value })}
+              />
+            </div>
+          ) : (
+            <div className="form-group">
+              <label htmlFor="valor_mensal">Valor mensal (R$)</label>
+              <input
+                id="valor_mensal"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0,00"
+                value={form.valor_mensal}
+                onChange={(e) => setForm({ ...form, valor_mensal: e.target.value })}
+              />
+            </div>
+          )}
 
           <div className="modal-actions">
             <button type="button" className="btn btn-secondary" onClick={() => setModalAberto(false)}>
