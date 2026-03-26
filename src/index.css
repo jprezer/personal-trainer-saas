@@ -316,16 +316,28 @@ a:hover {
 
 /* ========== Alerts ========== */
 .alert {
-  padding: 10px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
   border-radius: var(--radius);
-  font-size: 13px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.4;
   margin-bottom: 16px;
 }
 
 .alert-erro {
-  background: var(--red-bg);
-  color: var(--red);
-  border: 1px solid rgba(220, 38, 38, 0.2);
+  background: #fff0f0;
+  color: #b91c1c;
+  border: 1.5px solid #fca5a5;
+}
+
+.alert-erro::before {
+  content: '⚠️';
+  flex-shrink: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
 /* ========== Metrics ========== */
