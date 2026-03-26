@@ -45,7 +45,7 @@ export default function Agenda() {
     const [sessoesRes, alunosRes, academiasRes] = await Promise.all([
       supabase
         .from('sessoes')
-        .select('*, alunos(nome), academias(nome)')
+        .select('*, alunos(nome, local_treino), academias(nome)')
         .eq('personal_id', user.id)
         .gte('data_hora', inicio)
         .lt('data_hora', fim.toISOString())
@@ -78,7 +78,6 @@ export default function Agenda() {
     const novaInicio = new Date(dataHoraISO)
     const novaFim = new Date(novaInicio.getTime() + duracaoMin * 60000)
 
-    // Busca sessões do mesmo dia (margem de 24h) para checar sobreposição
     const diaInicio = new Date(novaInicio)
     diaInicio.setHours(0, 0, 0, 0)
     const diaFim = new Date(diaInicio)
@@ -100,7 +99,6 @@ export default function Agenda() {
       const existInicio = new Date(sessao.data_hora)
       const existFim = new Date(existInicio.getTime() + sessao.duracao_minutos * 60000)
 
-      // Sobreposição: novaInicio < existFim AND novaFim > existInicio
       if (novaInicio < existFim && novaFim > existInicio) {
         const horaInicio = existInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
         const horaFim = existFim.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
@@ -131,6 +129,7 @@ export default function Agenda() {
         data_hora: dataHoraISO,
         duracao_minutos: duracao,
         valor: formNova.valor ? parseFloat(formNova.valor) : null,
+        status: 'agendada',
       }
       await supabase.from('sessoes').insert({ ...dados, personal_id: user.id })
       setModalNova(false)
@@ -145,6 +144,17 @@ export default function Agenda() {
   function abrirDetalheSessao(sessao) {
     setSessaoSelecionada(sessao)
     setFormStatus({ status: sessao.status, observacoes: sessao.observacoes || '' })
+  }
+
+  async function confirmarSessao() {
+    setSalvando(true)
+    try {
+      await supabase.from('sessoes').update({ status: 'agendada' }).eq('id', sessaoSelecionada.id)
+      setSessaoSelecionada(null)
+      carregarDados()
+    } finally {
+      setSalvando(false)
+    }
   }
 
   async function handleAtualizarSessao(e) {
@@ -169,6 +179,11 @@ export default function Agenda() {
   }
 
   const labelSemana = `${dias[0].toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })} — ${dias[6].toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}`
+
+  // Localização da sessão: academia cadastrada ou local_treino do aluno
+  function getLocal(sessao) {
+    return sessao.academias?.nome || sessao.alunos?.local_treino || null
+  }
 
   return (
     <div className="page agenda-page">
@@ -201,18 +216,23 @@ export default function Agenda() {
                 </div>
 
                 <div className="agenda-dia-sessoes">
-                  {sessoesDia.map((sessao) => (
-                    <button
-                      key={sessao.id}
-                      className={`agenda-sessao agenda-sessao-${sessao.status}`}
-                      onClick={() => abrirDetalheSessao(sessao)}
-                    >
-                      <span className="agenda-sessao-hora">
-                        {new Date(sessao.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                      <span className="agenda-sessao-aluno">{sessao.alunos?.nome}</span>
-                    </button>
-                  ))}
+                  {sessoesDia.map((sessao) => {
+                    const local = getLocal(sessao)
+                    return (
+                      <button
+                        key={sessao.id}
+                        className={`agenda-sessao agenda-sessao-${sessao.status}`}
+                        onClick={() => abrirDetalheSessao(sessao)}
+                      >
+                        <span className="agenda-sessao-hora">
+                          {new Date(sessao.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          {sessao.status === 'pendente' && <span className="agenda-sessao-pendente-tag"> · pendente</span>}
+                        </span>
+                        <span className="agenda-sessao-aluno">{sessao.alunos?.nome}</span>
+                        {local && <span className="agenda-sessao-local">📍 {local}</span>}
+                      </button>
+                    )
+                  })}
                 </div>
 
                 <button className="agenda-add-btn" onClick={() => abrirModalNova(dia)}>+</button>
@@ -275,6 +295,16 @@ export default function Agenda() {
       <Modal aberto={!!sessaoSelecionada} onFechar={() => setSessaoSelecionada(null)} titulo="Detalhes da sessão">
         {sessaoSelecionada && (
           <form onSubmit={handleAtualizarSessao}>
+            {/* Aviso de confirmação pendente */}
+            {sessaoSelecionada.status === 'pendente' && (
+              <div className="sessao-pendente-aviso">
+                <span>⏳ Esta sessão foi gerada automaticamente e aguarda confirmação.</span>
+                <button type="button" className="btn btn-primary btn-sm" onClick={confirmarSessao} disabled={salvando}>
+                  ✓ Confirmar aula
+                </button>
+              </div>
+            )}
+
             <div className="sessao-detalhe-info">
               <div className="dado">
                 <span className="dado-label">Aluno</span>
@@ -286,25 +316,25 @@ export default function Agenda() {
                   {new Date(sessaoSelecionada.data_hora).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}
                 </span>
               </div>
-              {sessaoSelecionada.academias?.nome && (
+              {getLocal(sessaoSelecionada) && (
                 <div className="dado">
-                  <span className="dado-label">Academia</span>
-                  <span className="dado-valor">{sessaoSelecionada.academias.nome}</span>
+                  <span className="dado-label">Local</span>
+                  <span className="dado-valor">📍 {getLocal(sessaoSelecionada)}</span>
                 </div>
               )}
             </div>
 
             <div className="form-group">
-              <label htmlFor="sessao-status">Status</label>
+              <label>Status</label>
               <div className="status-options">
-                {['agendada', 'realizada', 'cancelada', 'falta'].map((s) => (
+                {['pendente', 'agendada', 'realizada', 'cancelada', 'falta'].map((s) => (
                   <button
                     key={s}
                     type="button"
                     className={`status-option status-option-${s} ${formStatus.status === s ? 'status-option-ativo' : ''}`}
                     onClick={() => setFormStatus({ ...formStatus, status: s })}
                   >
-                    {s}
+                    {s === 'pendente' ? 'pendente' : s}
                   </button>
                 ))}
               </div>

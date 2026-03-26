@@ -428,6 +428,11 @@ a:hover {
   background: var(--bg3);
 }
 
+.status-pendente {
+  background: var(--orange-bg);
+  color: var(--orange);
+}
+
 /* ========== Empty State ========== */
 .empty-state {
   display: flex;
@@ -1024,6 +1029,18 @@ a:hover {
   opacity: 0.6;
 }
 
+.agenda-sessao-pendente {
+  background: var(--orange-bg);
+  border: 1.5px dashed var(--orange);
+  opacity: 0.85;
+}
+
+.agenda-sessao-pendente-tag {
+  color: var(--orange);
+  font-size: 10px;
+  font-weight: 600;
+}
+
 .agenda-sessao-hora {
   font-family: var(--mono);
   font-size: 11px;
@@ -1034,6 +1051,15 @@ a:hover {
   font-size: 12px;
   font-weight: 500;
   color: var(--text);
+}
+
+.agenda-sessao-local {
+  font-size: 10px;
+  color: var(--text2);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .agenda-add-btn {
@@ -1053,6 +1079,27 @@ a:hover {
 }
 
 /* ========== Sessão Detalhe Modal ========== */
+.sessao-pendente-aviso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--orange-bg);
+  border: 1px solid var(--orange);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 0.85rem;
+  color: var(--orange);
+  font-weight: 500;
+  flex-wrap: wrap;
+}
+
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 0.8rem;
+}
+
 .sessao-detalhe-info {
   display: grid;
   grid-template-columns: 1fr 1fr;
