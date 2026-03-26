@@ -145,11 +145,11 @@ export default function Financeiro() {
         <div className="loading">Carregando...</div>
       ) : (
         <>
-          {/* Cards resumo */}
+          {/* Cards resumo total */}
           <div className="metricas">
             <div className="metrica-card">
               <span className="metrica-valor">{formatMoeda(totalFaturamento)}</span>
-              <span className="metrica-label">Faturamento</span>
+              <span className="metrica-label">Faturamento total</span>
             </div>
             <div className="metrica-card">
               <span className="metrica-valor" style={{ color: 'var(--green)' }}>{formatMoeda(totalRecebido)}</span>
@@ -162,6 +162,63 @@ export default function Financeiro() {
               <span className="metrica-label">Pendente</span>
             </div>
           </div>
+
+          {/* Cards breakdown por tipo */}
+          {(alunosMensais.length > 0 || sessoesPorAula.length > 0) && (
+            <div className="financeiro-breakdown">
+              {alunosMensais.length > 0 && (
+                <div className="financeiro-breakdown-card financeiro-breakdown-mensal">
+                  <div className="fbc-header">
+                    <span className="fbc-icon">📅</span>
+                    <span className="fbc-titulo">Mensalidades</span>
+                    <span className="fbc-qtd">{alunosMensais.length} aluno{alunosMensais.length > 1 ? 's' : ''}</span>
+                  </div>
+                  <div className="fbc-valores">
+                    <div className="fbc-linha">
+                      <span className="fbc-label">Faturado</span>
+                      <span className="fbc-valor">{formatMoeda(totalMensalidades)}</span>
+                    </div>
+                    <div className="fbc-linha">
+                      <span className="fbc-label">Recebido</span>
+                      <span className="fbc-valor fbc-recebido">{formatMoeda(totalMensalidadesPago)}</span>
+                    </div>
+                    <div className="fbc-linha">
+                      <span className="fbc-label">Pendente</span>
+                      <span className="fbc-valor" style={{ color: (totalMensalidades - totalMensalidadesPago) > 0 ? 'var(--yellow)' : 'var(--text3)' }}>
+                        {formatMoeda(totalMensalidades - totalMensalidadesPago)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {sessoesPorAula.length > 0 && (
+                <div className="financeiro-breakdown-card financeiro-breakdown-avulso">
+                  <div className="fbc-header">
+                    <span className="fbc-icon">🏋️</span>
+                    <span className="fbc-titulo">Por aula</span>
+                    <span className="fbc-qtd">{sessoesRealizadas.length} sessão{sessoesRealizadas.length !== 1 ? 'ões' : ''}</span>
+                  </div>
+                  <div className="fbc-valores">
+                    <div className="fbc-linha">
+                      <span className="fbc-label">Faturado</span>
+                      <span className="fbc-valor">{formatMoeda(totalSessoes)}</span>
+                    </div>
+                    <div className="fbc-linha">
+                      <span className="fbc-label">Recebido</span>
+                      <span className="fbc-valor fbc-recebido">{formatMoeda(totalSessoesPago)}</span>
+                    </div>
+                    <div className="fbc-linha">
+                      <span className="fbc-label">Pendente</span>
+                      <span className="fbc-valor" style={{ color: (totalSessoes - totalSessoesPago) > 0 ? 'var(--yellow)' : 'var(--text3)' }}>
+                        {formatMoeda(totalSessoes - totalSessoesPago)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {sessoesSeValue > 0 && (
             <div className="financeiro-aviso">

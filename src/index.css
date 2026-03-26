@@ -1371,6 +1371,84 @@ a:hover {
 }
 
 /* ========== Financeiro ========== */
+.financeiro-breakdown {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.financeiro-breakdown-card {
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.financeiro-breakdown-mensal {
+  border-left: 3px solid var(--orange);
+}
+
+.financeiro-breakdown-avulso {
+  border-left: 3px solid var(--accent);
+}
+
+.fbc-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.fbc-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.fbc-titulo {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+}
+
+.fbc-qtd {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text3);
+  background: var(--bg3);
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.fbc-valores {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fbc-linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fbc-label {
+  font-size: 0.78rem;
+  color: var(--text2);
+}
+
+.fbc-valor {
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: var(--mono);
+  color: var(--text);
+}
+
+.fbc-recebido {
+  color: var(--green) !important;
+}
+
 .financeiro-section {
   margin-top: 28px;
 }
@@ -1894,6 +1972,10 @@ a:hover {
   }
 
   /* Financeiro */
+  .financeiro-breakdown {
+    grid-template-columns: 1fr;
+  }
+
   .financeiro-filtros {
     flex-direction: column;
   }
