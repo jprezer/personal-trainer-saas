@@ -1371,6 +1371,43 @@ a:hover {
 }
 
 /* ========== Financeiro ========== */
+.financeiro-section {
+  margin-top: 28px;
+}
+
+.financeiro-section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  margin-bottom: 12px;
+}
+
+.financeiro-badge-mensal {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--orange-bg);
+  color: var(--orange);
+}
+
+.financeiro-item-valor-fixo {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-weight: 600;
+  font-family: var(--mono);
+  color: var(--text);
+  min-width: 80px;
+  cursor: default;
+}
+
 .financeiro-aviso {
   display: flex;
   align-items: center;

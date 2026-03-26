@@ -6,6 +6,13 @@ import Modal from '../components/Modal'
 import StatusBadge from '../components/StatusBadge'
 import EmptyState from '../components/EmptyState'
 
+// Converte ISO string para o formato esperado pelo input datetime-local
+function toDateTimeLocal(isoStr) {
+  const d = new Date(isoStr)
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
 export default function Agenda() {
   const { user } = useAuth()
   const [semanaOffset, setSemanaOffset] = useState(0)
@@ -22,7 +29,8 @@ export default function Agenda() {
 
   // Modal detalhe sessão
   const [sessaoSelecionada, setSessaoSelecionada] = useState(null)
-  const [formStatus, setFormStatus] = useState({ status: '', observacoes: '' })
+  const [formStatus, setFormStatus] = useState({ status: '', observacoes: '', data_hora: '' })
+  const [erroDetalhe, setErroDetalhe] = useState('')
 
   const hoje = new Date()
   const inicioSemana = getInicioSemana(hoje, semanaOffset)
@@ -50,7 +58,7 @@ export default function Agenda() {
         .gte('data_hora', inicio)
         .lt('data_hora', fim.toISOString())
         .order('data_hora'),
-      supabase.from('alunos').select('id, nome, valor_aula').eq('personal_id', user.id).eq('ativo', true).order('nome'),
+      supabase.from('alunos').select('id, nome, valor_aula, horario_padrao').eq('personal_id', user.id).eq('ativo', true).order('nome'),
       supabase.from('personal_academias').select('academia_id, academias(id, nome)').eq('personal_id', user.id),
     ])
 
@@ -95,15 +103,12 @@ export default function Agenda() {
 
     for (const sessao of sessoesExistentes) {
       if (sessaoIdExcluir && sessao.id === sessaoIdExcluir) continue
-
       const existInicio = new Date(sessao.data_hora)
       const existFim = new Date(existInicio.getTime() + sessao.duracao_minutos * 60000)
-
       if (novaInicio < existFim && novaFim > existInicio) {
         const horaInicio = existInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
         const horaFim = existFim.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-        const nomeAluno = sessao.alunos?.nome || 'aluno'
-        return `Conflito de horário: já existe uma aula com ${nomeAluno} das ${horaInicio} às ${horaFim}`
+        return `Conflito de horário: já existe uma aula com ${sessao.alunos?.nome || 'aluno'} das ${horaInicio} às ${horaFim}`
       }
     }
     return null
@@ -118,20 +123,17 @@ export default function Agenda() {
       const duracao = parseInt(formNova.duracao_minutos)
 
       const conflito = await verificarSobreposicao(dataHoraISO, duracao)
-      if (conflito) {
-        setErroForm(conflito)
-        return
-      }
+      if (conflito) { setErroForm(conflito); return }
 
-      const dados = {
+      await supabase.from('sessoes').insert({
         aluno_id: formNova.aluno_id,
         academia_id: formNova.academia_id || null,
         data_hora: dataHoraISO,
         duracao_minutos: duracao,
         valor: formNova.valor ? parseFloat(formNova.valor) : null,
         status: 'agendada',
-      }
-      await supabase.from('sessoes').insert({ ...dados, personal_id: user.id })
+        personal_id: user.id,
+      })
       setModalNova(false)
       carregarDados()
     } catch {
@@ -143,7 +145,12 @@ export default function Agenda() {
 
   function abrirDetalheSessao(sessao) {
     setSessaoSelecionada(sessao)
-    setFormStatus({ status: sessao.status, observacoes: sessao.observacoes || '' })
+    setErroDetalhe('')
+    setFormStatus({
+      status: sessao.status,
+      observacoes: sessao.observacoes || '',
+      data_hora: toDateTimeLocal(sessao.data_hora),
+    })
   }
 
   async function confirmarSessao() {
@@ -159,13 +166,34 @@ export default function Agenda() {
 
   async function handleAtualizarSessao(e) {
     e.preventDefault()
+    setErroDetalhe('')
     setSalvando(true)
     try {
-      await supabase.from('sessoes').update(formStatus).eq('id', sessaoSelecionada.id)
+      const novaDataHora = new Date(formStatus.data_hora).toISOString()
+
+      // Verifica conflito apenas se o horário mudou
+      if (novaDataHora !== sessaoSelecionada.data_hora) {
+        const conflito = await verificarSobreposicao(
+          novaDataHora,
+          sessaoSelecionada.duracao_minutos,
+          sessaoSelecionada.id
+        )
+        if (conflito) { setErroDetalhe(conflito); return }
+      }
+
+      await supabase
+        .from('sessoes')
+        .update({
+          status: formStatus.status,
+          observacoes: formStatus.observacoes,
+          data_hora: novaDataHora,
+        })
+        .eq('id', sessaoSelecionada.id)
+
       setSessaoSelecionada(null)
       carregarDados()
     } catch {
-      // erro silencioso
+      setErroDetalhe('Erro ao salvar. Tente novamente.')
     } finally {
       setSalvando(false)
     }
@@ -180,7 +208,6 @@ export default function Agenda() {
 
   const labelSemana = `${dias[0].toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })} — ${dias[6].toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}`
 
-  // Localização da sessão: academia cadastrada ou local_treino do aluno
   function getLocal(sessao) {
     return sessao.academias?.nome || sessao.alunos?.local_treino || null
   }
@@ -207,14 +234,12 @@ export default function Agenda() {
           {dias.map((dia) => {
             const sessoesDia = getSessoesDia(dia)
             const isHoje = dia.toDateString() === hoje.toDateString()
-
             return (
               <div key={dia.toISOString()} className={`agenda-dia ${isHoje ? 'agenda-dia-hoje' : ''}`}>
                 <div className="agenda-dia-header">
                   <span className="agenda-dia-nome">{getDiaSemanaAbrev(dia.getDay())}</span>
                   <span className={`agenda-dia-num ${isHoje ? 'agenda-dia-num-hoje' : ''}`}>{dia.getDate()}</span>
                 </div>
-
                 <div className="agenda-dia-sessoes">
                   {sessoesDia.map((sessao) => {
                     const local = getLocal(sessao)
@@ -234,7 +259,6 @@ export default function Agenda() {
                     )
                   })}
                 </div>
-
                 <button className="agenda-add-btn" onClick={() => abrirModalNova(dia)}>+</button>
               </div>
             )
@@ -242,17 +266,32 @@ export default function Agenda() {
         </div>
       )}
 
-      {/* Modal: Nova sessão */}
+      {/* ── Modal: Nova sessão ── */}
       <Modal aberto={modalNova} onFechar={() => setModalNova(false)} titulo="Nova sessão">
         <form onSubmit={handleCriarSessao}>
           {erroForm && <div className="erro-form">{erroForm}</div>}
           <div className="form-group">
             <label htmlFor="sessao-aluno">Aluno *</label>
-            <select id="sessao-aluno" value={formNova.aluno_id} onChange={(e) => {
-              const alunoId = e.target.value
-              const aluno = alunos.find((a) => a.id === alunoId)
-              setFormNova({ ...formNova, aluno_id: alunoId, valor: aluno?.valor_aula || '' })
-            }} required>
+            <select
+              id="sessao-aluno"
+              value={formNova.aluno_id}
+              onChange={(e) => {
+                const alunoId = e.target.value
+                const aluno = alunos.find((a) => a.id === alunoId)
+                // Preenche horário padrão do aluno se disponível
+                const diaStr = formNova.data_hora.split('T')[0]
+                const hora = aluno?.horario_padrao
+                  ? aluno.horario_padrao.slice(0, 5)
+                  : formNova.data_hora.split('T')[1] || '08:00'
+                setFormNova({
+                  ...formNova,
+                  aluno_id: alunoId,
+                  valor: aluno?.valor_aula || '',
+                  data_hora: `${diaStr}T${hora}`,
+                })
+              }}
+              required
+            >
               <option value="">Selecione...</option>
               {alunos.map((a) => (
                 <option key={a.id} value={a.id}>{a.nome}</option>
@@ -262,21 +301,46 @@ export default function Agenda() {
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="sessao-data">Data e hora *</label>
-              <input id="sessao-data" type="datetime-local" value={formNova.data_hora} onChange={(e) => setFormNova({ ...formNova, data_hora: e.target.value })} required />
+              <input
+                id="sessao-data"
+                type="datetime-local"
+                value={formNova.data_hora}
+                onChange={(e) => setFormNova({ ...formNova, data_hora: e.target.value })}
+                required
+              />
             </div>
             <div className="form-group">
               <label htmlFor="sessao-duracao">Duração (min)</label>
-              <input id="sessao-duracao" type="number" value={formNova.duracao_minutos} onChange={(e) => setFormNova({ ...formNova, duracao_minutos: e.target.value })} min={15} step={15} />
+              <input
+                id="sessao-duracao"
+                type="number"
+                value={formNova.duracao_minutos}
+                onChange={(e) => setFormNova({ ...formNova, duracao_minutos: e.target.value })}
+                min={15}
+                step={15}
+              />
             </div>
           </div>
           <div className="form-group">
             <label htmlFor="sessao-valor">Valor (R$)</label>
-            <input id="sessao-valor" type="number" step="0.01" min="0" placeholder="0,00" value={formNova.valor} onChange={(e) => setFormNova({ ...formNova, valor: e.target.value })} />
+            <input
+              id="sessao-valor"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="0,00"
+              value={formNova.valor}
+              onChange={(e) => setFormNova({ ...formNova, valor: e.target.value })}
+            />
           </div>
           {academias.length > 0 && (
             <div className="form-group">
               <label htmlFor="sessao-academia">Academia</label>
-              <select id="sessao-academia" value={formNova.academia_id} onChange={(e) => setFormNova({ ...formNova, academia_id: e.target.value })}>
+              <select
+                id="sessao-academia"
+                value={formNova.academia_id}
+                onChange={(e) => setFormNova({ ...formNova, academia_id: e.target.value })}
+              >
                 <option value="">Nenhuma</option>
                 {academias.map((a) => (
                   <option key={a.id} value={a.id}>{a.nome}</option>
@@ -291,30 +355,25 @@ export default function Agenda() {
         </form>
       </Modal>
 
-      {/* Modal: Detalhe sessão */}
+      {/* ── Modal: Detalhe sessão ── */}
       <Modal aberto={!!sessaoSelecionada} onFechar={() => setSessaoSelecionada(null)} titulo="Detalhes da sessão">
         {sessaoSelecionada && (
           <form onSubmit={handleAtualizarSessao}>
-            {/* Aviso de confirmação pendente */}
             {sessaoSelecionada.status === 'pendente' && (
               <div className="sessao-pendente-aviso">
-                <span>⏳ Esta sessão foi gerada automaticamente e aguarda confirmação.</span>
+                <span>⏳ Sessão gerada automaticamente — aguarda confirmação.</span>
                 <button type="button" className="btn btn-primary btn-sm" onClick={confirmarSessao} disabled={salvando}>
                   ✓ Confirmar aula
                 </button>
               </div>
             )}
 
+            {erroDetalhe && <div className="erro-form" style={{ marginBottom: 12 }}>{erroDetalhe}</div>}
+
             <div className="sessao-detalhe-info">
               <div className="dado">
                 <span className="dado-label">Aluno</span>
                 <span className="dado-valor">{sessaoSelecionada.alunos?.nome}</span>
-              </div>
-              <div className="dado">
-                <span className="dado-label">Horário</span>
-                <span className="dado-valor">
-                  {new Date(sessaoSelecionada.data_hora).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}
-                </span>
               </div>
               {getLocal(sessaoSelecionada) && (
                 <div className="dado">
@@ -322,6 +381,20 @@ export default function Agenda() {
                   <span className="dado-valor">📍 {getLocal(sessaoSelecionada)}</span>
                 </div>
               )}
+            </div>
+
+            {/* Edição de horário */}
+            <div className="form-group">
+              <label htmlFor="detalhe-data-hora">Data e hora</label>
+              <input
+                id="detalhe-data-hora"
+                type="datetime-local"
+                value={formStatus.data_hora}
+                onChange={(e) => {
+                  setErroDetalhe('')
+                  setFormStatus({ ...formStatus, data_hora: e.target.value })
+                }}
+              />
             </div>
 
             <div className="form-group">
@@ -334,7 +407,7 @@ export default function Agenda() {
                     className={`status-option status-option-${s} ${formStatus.status === s ? 'status-option-ativo' : ''}`}
                     onClick={() => setFormStatus({ ...formStatus, status: s })}
                   >
-                    {s === 'pendente' ? 'pendente' : s}
+                    {s}
                   </button>
                 ))}
               </div>

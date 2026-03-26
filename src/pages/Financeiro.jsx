@@ -8,17 +8,19 @@ import CustomSelect from '../components/CustomSelect'
 export default function Financeiro() {
   const { user } = useAuth()
   const [sessoes, setSessoes] = useState([])
+  const [alunosMensais, setAlunosMensais] = useState([])
+  const [pagamentos, setPagamentos] = useState([])
+  const [alunosTodos, setAlunosTodos] = useState([])
   const [loading, setLoading] = useState(true)
   const [mesOffset, setMesOffset] = useState(0)
-  const [filtroStatus, setFiltroStatus] = useState('todos') // todos, pago, pendente
+  const [filtroStatus, setFiltroStatus] = useState('todos')
   const [filtroAluno, setFiltroAluno] = useState('')
-  const [alunos, setAlunos] = useState([])
 
   const hoje = new Date()
   const mesAtual = new Date(hoje.getFullYear(), hoje.getMonth() + mesOffset, 1)
   const inicioMes = new Date(mesAtual.getFullYear(), mesAtual.getMonth(), 1)
   const fimMes = new Date(mesAtual.getFullYear(), mesAtual.getMonth() + 1, 1)
-
+  const mesISO = `${mesAtual.getFullYear()}-${String(mesAtual.getMonth() + 1).padStart(2, '0')}-01`
   const labelMes = mesAtual.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
 
   useEffect(() => {
@@ -27,10 +29,10 @@ export default function Financeiro() {
 
   async function carregarDados() {
     setLoading(true)
-    const [sessoesRes, alunosRes] = await Promise.all([
+    const [sessoesRes, alunosRes, pagamentosRes] = await Promise.all([
       supabase
         .from('sessoes')
-        .select('*, alunos(id, nome), academias(nome)')
+        .select('*, alunos(id, nome, formato_cobranca), academias(nome)')
         .eq('personal_id', user.id)
         .gte('data_hora', inicioMes.toISOString())
         .lt('data_hora', fimMes.toISOString())
@@ -38,13 +40,22 @@ export default function Financeiro() {
         .order('data_hora', { ascending: false }),
       supabase
         .from('alunos')
-        .select('id, nome')
+        .select('id, nome, formato_cobranca, valor_mensal, valor_aula')
         .eq('personal_id', user.id)
+        .eq('ativo', true)
         .order('nome'),
+      supabase
+        .from('pagamentos_mensais')
+        .select('*')
+        .eq('personal_id', user.id)
+        .eq('mes', mesISO),
     ])
 
+    const todos = alunosRes.data || []
     setSessoes(sessoesRes.data || [])
-    setAlunos(alunosRes.data || [])
+    setAlunosTodos(todos)
+    setAlunosMensais(todos.filter((a) => a.formato_cobranca === 'mensal'))
+    setPagamentos(pagamentosRes.data || [])
     setLoading(false)
   }
 
@@ -53,12 +64,7 @@ export default function Financeiro() {
       .from('sessoes')
       .update({ pago: !pagoAtual })
       .eq('id', sessaoId)
-
-    if (!error) {
-      setSessoes((prev) =>
-        prev.map((s) => (s.id === sessaoId ? { ...s, pago: !pagoAtual } : s))
-      )
-    }
+    if (!error) setSessoes((prev) => prev.map((s) => s.id === sessaoId ? { ...s, pago: !pagoAtual } : s))
   }
 
   async function handleEditarValor(sessaoId, valorAtual) {
@@ -66,33 +72,62 @@ export default function Financeiro() {
     if (input === null) return
     const valor = parseFloat(input.replace(',', '.'))
     if (isNaN(valor) || valor < 0) return
+    const { error } = await supabase.from('sessoes').update({ valor }).eq('id', sessaoId)
+    if (!error) setSessoes((prev) => prev.map((s) => s.id === sessaoId ? { ...s, valor } : s))
+  }
 
-    const { error } = await supabase
-      .from('sessoes')
-      .update({ valor })
-      .eq('id', sessaoId)
-
-    if (!error) {
-      setSessoes((prev) =>
-        prev.map((s) => (s.id === sessaoId ? { ...s, valor } : s))
-      )
+  async function toggleMensalidadePaga(aluno) {
+    const pag = pagamentos.find((p) => p.aluno_id === aluno.id)
+    if (pag) {
+      const { error } = await supabase
+        .from('pagamentos_mensais')
+        .update({ pago: !pag.pago })
+        .eq('id', pag.id)
+      if (!error) setPagamentos((prev) => prev.map((p) => p.id === pag.id ? { ...p, pago: !pag.pago } : p))
+    } else {
+      const { data, error } = await supabase
+        .from('pagamentos_mensais')
+        .insert({ personal_id: user.id, aluno_id: aluno.id, mes: mesISO, valor: aluno.valor_mensal || null, pago: true })
+        .select()
+        .single()
+      if (!error) setPagamentos((prev) => [...prev, data])
     }
   }
 
-  // Filtros
-  const sessoesFiltradas = sessoes.filter((s) => {
+  // ── Separar sessões por tipo de cobrança ──
+  const sessoesPorAula = sessoes.filter((s) => s.alunos?.formato_cobranca !== 'mensal')
+
+  // ── Mensalidades do mês ──
+  const mensalidadesDoMes = alunosMensais.map((aluno) => {
+    const pag = pagamentos.find((p) => p.aluno_id === aluno.id)
+    return {
+      aluno,
+      pago: pag?.pago || false,
+      valor: pag?.valor ?? aluno.valor_mensal ?? null,
+      pagamento_id: pag?.id || null,
+    }
+  })
+
+  // ── Totais ──
+  const sessoesRealizadas = sessoesPorAula.filter((s) => s.status === 'realizada' || s.status === 'falta')
+  const totalSessoes = sessoesRealizadas.reduce((acc, s) => acc + (Number(s.valor) || 0), 0)
+  const totalSessoesPago = sessoesRealizadas.filter((s) => s.pago).reduce((acc, s) => acc + (Number(s.valor) || 0), 0)
+  const totalMensalidades = mensalidadesDoMes.reduce((acc, m) => acc + (Number(m.valor) || 0), 0)
+  const totalMensalidadesPago = mensalidadesDoMes.filter((m) => m.pago).reduce((acc, m) => acc + (Number(m.valor) || 0), 0)
+  const totalFaturamento = totalSessoes + totalMensalidades
+  const totalRecebido = totalSessoesPago + totalMensalidadesPago
+  const totalPendente = totalFaturamento - totalRecebido
+  const sessoesSeValue = sessoesRealizadas.filter((s) => !s.valor).length
+
+  // ── Filtro das sessões ──
+  const sessoesFiltradas = sessoesPorAula.filter((s) => {
     if (filtroStatus === 'pago' && !s.pago) return false
     if (filtroStatus === 'pendente' && s.pago) return false
     if (filtroAluno && s.alunos?.id !== filtroAluno) return false
     return true
   })
 
-  // Resumo
-  const totalSessoes = sessoes.filter((s) => s.status === 'realizada' || s.status === 'falta')
-  const totalFaturamento = totalSessoes.reduce((acc, s) => acc + (Number(s.valor) || 0), 0)
-  const totalRecebido = totalSessoes.filter((s) => s.pago).reduce((acc, s) => acc + (Number(s.valor) || 0), 0)
-  const totalPendente = totalFaturamento - totalRecebido
-  const sessoesSeValue = totalSessoes.filter((s) => s.valor == null || s.valor === 0).length
+  const semMovimentacao = sessoesPorAula.length === 0 && alunosMensais.length === 0
 
   return (
     <div className="page financeiro-page">
@@ -100,7 +135,6 @@ export default function Financeiro() {
         <h1>Financeiro</h1>
       </header>
 
-      {/* Navegação de mês */}
       <div className="agenda-nav">
         <button className="btn btn-secondary" onClick={() => setMesOffset((m) => m - 1)}>← Anterior</button>
         <span className="agenda-semana-label" style={{ textTransform: 'capitalize' }}>{labelMes}</span>
@@ -135,68 +169,110 @@ export default function Financeiro() {
             </div>
           )}
 
-          {/* Filtros */}
-          <div className="financeiro-filtros">
-            <CustomSelect
-              value={filtroStatus}
-              onChange={(val) => setFiltroStatus(val)}
-              options={[
-                { value: 'todos', label: 'Todos' },
-                { value: 'pago', label: 'Pagos' },
-                { value: 'pendente', label: 'Pendentes' },
-              ]}
-            />
-            <CustomSelect
-              value={filtroAluno}
-              onChange={(val) => setFiltroAluno(val)}
-              options={[
-                { value: '', label: 'Todos os alunos' },
-                ...alunos.map((a) => ({ value: a.id, label: a.nome })),
-              ]}
-            />
-          </div>
+          {semMovimentacao && (
+            <EmptyState titulo="Nenhuma movimentação" descricao="Sessões e mensalidades do mês aparecerão aqui" />
+          )}
 
-          {/* Lista de sessões */}
-          {sessoesFiltradas.length === 0 ? (
-            <EmptyState titulo="Nenhuma sessão encontrada" descricao="Altere os filtros ou agende sessões na agenda" />
-          ) : (
-            <div className="financeiro-lista">
-              {sessoesFiltradas.map((sessao) => {
-                const data = new Date(sessao.data_hora)
-                const dataStr = data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
-                const horaStr = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-
-                return (
-                  <div key={sessao.id} className={`financeiro-item ${sessao.pago ? 'financeiro-item-pago' : ''}`}>
+          {/* ── Mensalidades ── */}
+          {alunosMensais.length > 0 && (
+            <div className="financeiro-section">
+              <h2 className="financeiro-section-title">Mensalidades</h2>
+              <div className="financeiro-lista">
+                {mensalidadesDoMes.map(({ aluno, pago, valor }) => (
+                  <div key={aluno.id} className={`financeiro-item ${pago ? 'financeiro-item-pago' : ''}`}>
                     <div className="financeiro-item-info">
-                      <span className="financeiro-item-data">{dataStr} {horaStr}</span>
-                      <span className="financeiro-item-aluno">{sessao.alunos?.nome}</span>
-                      {sessao.academias?.nome && (
-                        <span className="financeiro-item-academia">{sessao.academias.nome}</span>
-                      )}
-                    </div>
-                    <div className="financeiro-item-status">
-                      <span className={`financeiro-status-badge financeiro-status-${sessao.status}`}>
-                        {sessao.status}
+                      <span className="financeiro-item-aluno">{aluno.nome}</span>
+                      <span className="financeiro-item-data" style={{ textTransform: 'capitalize' }}>
+                        {labelMes}
                       </span>
                     </div>
+                    <div className="financeiro-item-status">
+                      <span className="financeiro-badge-mensal">mensal</span>
+                    </div>
+                    <span className="financeiro-item-valor financeiro-item-valor-fixo">
+                      {valor ? formatMoeda(valor) : 'R$ —'}
+                    </span>
                     <button
-                      className="financeiro-item-valor"
-                      onClick={() => handleEditarValor(sessao.id, sessao.valor)}
-                      title="Clique para editar o valor"
+                      className={`financeiro-pago-btn ${pago ? 'financeiro-pago-btn-ativo' : ''}`}
+                      onClick={() => toggleMensalidadePaga(aluno)}
                     >
-                      {sessao.valor ? formatMoeda(sessao.valor) : 'R$ —'}
-                    </button>
-                    <button
-                      className={`financeiro-pago-btn ${sessao.pago ? 'financeiro-pago-btn-ativo' : ''}`}
-                      onClick={() => togglePago(sessao.id, sessao.pago)}
-                      title={sessao.pago ? 'Marcar como pendente' : 'Marcar como pago'}
-                    >
-                      {sessao.pago ? '✓ Pago' : 'Pendente'}
+                      {pago ? '✓ Pago' : 'Pendente'}
                     </button>
                   </div>
-                )
-              })}
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Sessões por aula ── */}
+          {sessoesPorAula.length > 0 && (
+            <div className="financeiro-section">
+              {alunosMensais.length > 0 && (
+                <h2 className="financeiro-section-title">Sessões (por aula)</h2>
+              )}
+
+              <div className="financeiro-filtros">
+                <CustomSelect
+                  value={filtroStatus}
+                  onChange={setFiltroStatus}
+                  options={[
+                    { value: 'todos', label: 'Todos' },
+                    { value: 'pago', label: 'Pagos' },
+                    { value: 'pendente', label: 'Pendentes' },
+                  ]}
+                />
+                <CustomSelect
+                  value={filtroAluno}
+                  onChange={setFiltroAluno}
+                  options={[
+                    { value: '', label: 'Todos os alunos' },
+                    ...alunosTodos
+                      .filter((a) => a.formato_cobranca !== 'mensal')
+                      .map((a) => ({ value: a.id, label: a.nome })),
+                  ]}
+                />
+              </div>
+
+              {sessoesFiltradas.length === 0 ? (
+                <EmptyState titulo="Nenhuma sessão encontrada" descricao="Altere os filtros ou agende sessões na agenda" />
+              ) : (
+                <div className="financeiro-lista">
+                  {sessoesFiltradas.map((sessao) => {
+                    const data = new Date(sessao.data_hora)
+                    const dataStr = data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+                    const horaStr = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                    return (
+                      <div key={sessao.id} className={`financeiro-item ${sessao.pago ? 'financeiro-item-pago' : ''}`}>
+                        <div className="financeiro-item-info">
+                          <span className="financeiro-item-data">{dataStr} {horaStr}</span>
+                          <span className="financeiro-item-aluno">{sessao.alunos?.nome}</span>
+                          {sessao.academias?.nome && (
+                            <span className="financeiro-item-academia">{sessao.academias.nome}</span>
+                          )}
+                        </div>
+                        <div className="financeiro-item-status">
+                          <span className={`financeiro-status-badge financeiro-status-${sessao.status}`}>
+                            {sessao.status}
+                          </span>
+                        </div>
+                        <button
+                          className="financeiro-item-valor"
+                          onClick={() => handleEditarValor(sessao.id, sessao.valor)}
+                          title="Clique para editar o valor"
+                        >
+                          {sessao.valor ? formatMoeda(sessao.valor) : 'R$ —'}
+                        </button>
+                        <button
+                          className={`financeiro-pago-btn ${sessao.pago ? 'financeiro-pago-btn-ativo' : ''}`}
+                          onClick={() => togglePago(sessao.id, sessao.pago)}
+                        >
+                          {sessao.pago ? '✓ Pago' : 'Pendente'}
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           )}
         </>
