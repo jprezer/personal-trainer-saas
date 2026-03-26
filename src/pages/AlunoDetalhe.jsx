@@ -5,6 +5,8 @@ import { formatDataHora, formatMoeda } from '../lib/utils'
 import StatusBadge from '../components/StatusBadge'
 import EmptyState from '../components/EmptyState'
 import CustomSelect from '../components/CustomSelect'
+import ConfirmModal from '../components/ConfirmModal'
+import { useToast } from '../contexts/ToastContext'
 
 const DIAS = [
   { valor: 1, label: 'Seg' },
@@ -30,12 +32,14 @@ export default function AlunoDetalhe() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [aluno, setAluno] = useState(null)
+  const { showToast } = useToast()
   const [sessoes, setSessoes] = useState([])
   const [loading, setLoading] = useState(true)
   const [editando, setEditando] = useState(false)
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState('')
   const [form, setForm] = useState({})
+  const [confirmExcluir, setConfirmExcluir] = useState(false)
 
   useEffect(() => {
     carregarDados()
@@ -100,6 +104,7 @@ export default function AlunoDetalhe() {
       setAluno(data)
       setForm(data)
       setEditando(false)
+      showToast('Dados salvos com sucesso!', 'sucesso')
     } catch (err) {
       setErro('Erro ao salvar. Tente novamente.')
     } finally {
@@ -118,13 +123,19 @@ export default function AlunoDetalhe() {
     if (!error) {
       setAluno(data)
       setForm(data)
+      showToast(data.ativo ? 'Aluno reativado.' : 'Aluno desativado.', 'aviso')
     }
   }
 
   async function handleExcluir() {
-    if (!window.confirm(`Excluir ${aluno.nome}? Essa ação não pode ser desfeita.`)) return
     const { error } = await supabase.from('alunos').delete().eq('id', id)
-    if (!error) navigate('/alunos')
+    if (!error) {
+      showToast(`${aluno.nome} foi excluído.`, 'sucesso')
+      navigate('/alunos')
+    } else {
+      showToast('Erro ao excluir aluno.', 'erro')
+    }
+    setConfirmExcluir(false)
   }
 
   if (loading) return <div className="loading">Carregando...</div>
@@ -448,10 +459,19 @@ export default function AlunoDetalhe() {
       </section>
 
       <div className="aluno-danger-zone">
-        <button className="btn btn-danger" onClick={handleExcluir}>
+        <button className="btn btn-danger" onClick={() => setConfirmExcluir(true)}>
           Excluir aluno
         </button>
       </div>
+
+      <ConfirmModal
+        aberto={confirmExcluir}
+        titulo="Excluir aluno"
+        mensagem={`Tem certeza que deseja excluir ${aluno?.nome}? Todas as sessões vinculadas também serão removidas. Essa ação não pode ser desfeita.`}
+        labelConfirmar="Excluir"
+        onConfirmar={handleExcluir}
+        onCancelar={() => setConfirmExcluir(false)}
+      />
     </div>
   )
 }

@@ -3,8 +3,10 @@ import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import { getDiaSemanaAbrev } from '../lib/utils'
 import Modal from '../components/Modal'
+import ConfirmModal from '../components/ConfirmModal'
 import StatusBadge from '../components/StatusBadge'
 import EmptyState from '../components/EmptyState'
+import { useToast } from '../contexts/ToastContext'
 
 // Converte ISO string para o formato esperado pelo input datetime-local
 function toDateTimeLocal(isoStr) {
@@ -15,6 +17,7 @@ function toDateTimeLocal(isoStr) {
 
 export default function Agenda() {
   const { user } = useAuth()
+  const { showToast } = useToast()
   const [semanaOffset, setSemanaOffset] = useState(0)
   const [sessoes, setSessoes] = useState([])
   const [alunos, setAlunos] = useState([])
@@ -31,6 +34,7 @@ export default function Agenda() {
   const [sessaoSelecionada, setSessaoSelecionada] = useState(null)
   const [formStatus, setFormStatus] = useState({ status: '', observacoes: '', data_hora: '' })
   const [erroDetalhe, setErroDetalhe] = useState('')
+  const [confirmExcluirSessao, setConfirmExcluirSessao] = useState(false)
 
   const hoje = new Date()
   const inicioSemana = getInicioSemana(hoje, semanaOffset)
@@ -136,6 +140,7 @@ export default function Agenda() {
       })
       setModalNova(false)
       carregarDados()
+      showToast('Sessão agendada com sucesso!', 'sucesso')
     } catch {
       setErroForm('Erro ao agendar sessão')
     } finally {
@@ -159,6 +164,7 @@ export default function Agenda() {
       await supabase.from('sessoes').update({ status: 'agendada' }).eq('id', sessaoSelecionada.id)
       setSessaoSelecionada(null)
       carregarDados()
+      showToast('Sessão confirmada!', 'sucesso')
     } finally {
       setSalvando(false)
     }
@@ -192,6 +198,7 @@ export default function Agenda() {
 
       setSessaoSelecionada(null)
       carregarDados()
+      showToast('Sessão atualizada!', 'sucesso')
     } catch {
       setErroDetalhe('Erro ao salvar. Tente novamente.')
     } finally {
@@ -200,10 +207,12 @@ export default function Agenda() {
   }
 
   async function handleExcluirSessao() {
-    if (!window.confirm('Excluir esta sessão?')) return
-    await supabase.from('sessoes').delete().eq('id', sessaoSelecionada.id)
+    const { error } = await supabase.from('sessoes').delete().eq('id', sessaoSelecionada.id)
+    setConfirmExcluirSessao(false)
     setSessaoSelecionada(null)
     carregarDados()
+    if (!error) showToast('Sessão excluída.', 'aviso')
+    else showToast('Erro ao excluir sessão.', 'erro')
   }
 
   const labelSemana = `${dias[0].toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })} — ${dias[6].toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}`
@@ -425,7 +434,7 @@ export default function Agenda() {
             </div>
 
             <div className="modal-actions">
-              <button type="button" className="btn-remover" onClick={handleExcluirSessao}>Excluir</button>
+              <button type="button" className="btn-remover" onClick={() => setConfirmExcluirSessao(true)}>Excluir</button>
               <div style={{ flex: 1 }} />
               <button type="button" className="btn btn-secondary" onClick={() => setSessaoSelecionada(null)}>Cancelar</button>
               <button type="submit" className="btn btn-primary" disabled={salvando}>{salvando ? 'Salvando...' : 'Salvar'}</button>
@@ -433,6 +442,15 @@ export default function Agenda() {
           </form>
         )}
       </Modal>
+
+      <ConfirmModal
+        aberto={confirmExcluirSessao}
+        titulo="Excluir sessão"
+        mensagem="Tem certeza que deseja excluir esta sessão? Essa ação não pode ser desfeita."
+        labelConfirmar="Excluir"
+        onConfirmar={handleExcluirSessao}
+        onCancelar={() => setConfirmExcluirSessao(false)}
+      />
     </div>
   )
 }

@@ -4,6 +4,7 @@ import useAlunos from '../hooks/useAlunos'
 import Modal from '../components/Modal'
 import EmptyState from '../components/EmptyState'
 import CustomSelect from '../components/CustomSelect'
+import { useToast } from '../contexts/ToastContext'
 
 const DIAS = [
   { valor: 1, label: 'Seg' },
@@ -42,6 +43,7 @@ const formInicial = {
 
 export default function Alunos() {
   const { alunos, loading, criarAluno } = useAlunos()
+  const { showToast } = useToast()
   const navigate = useNavigate()
   const [busca, setBusca] = useState('')
   const [modalAberto, setModalAberto] = useState(false)
@@ -88,6 +90,7 @@ export default function Alunos() {
 
       await criarAluno(dados)
       setModalAberto(false)
+      showToast(`${dados.nome} cadastrado com sucesso!`, 'sucesso')
     } catch (err) {
       setErro('Erro ao cadastrar aluno. Tente novamente.')
     } finally {
