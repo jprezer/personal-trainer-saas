@@ -387,6 +387,33 @@ a:hover {
   padding: 14px 16px;
 }
 
+.sessao-card-dashboard {
+  align-items: flex-start;
+}
+
+.sessao-detalhes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.sessao-local-tag {
+  font-size: 0.75rem;
+  color: var(--text2);
+}
+
+.sessao-objetivo-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--green-bg);
+  padding: 2px 8px;
+  border-radius: 20px;
+  text-transform: capitalize;
+}
+
 .sessao-hora {
   font-family: var(--mono);
   font-size: 14px;

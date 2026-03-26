@@ -37,7 +37,7 @@ export default function Dashboard() {
 
     const [profileRes, sessoesHojeRes, alunosRes, sessoesSemanaRes, sessoesMesRes] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', user.id).single(),
-      supabase.from('sessoes').select('*, alunos(nome), academias(nome)').eq('personal_id', user.id).gte('data_hora', inicioHoje).lt('data_hora', fimHoje).order('data_hora'),
+      supabase.from('sessoes').select('*, alunos(nome, objetivo, local_treino), academias(nome)').eq('personal_id', user.id).gte('data_hora', inicioHoje).lt('data_hora', fimHoje).order('data_hora'),
       supabase.from('alunos').select('id', { count: 'exact' }).eq('personal_id', user.id).eq('ativo', true),
       supabase.from('sessoes').select('id', { count: 'exact' }).eq('personal_id', user.id).gte('data_hora', inicioSemana.toISOString()).lt('data_hora', fimSemana.toISOString()),
       supabase.from('sessoes').select('id', { count: 'exact' }).eq('personal_id', user.id).gte('data_hora', inicioMes).lt('data_hora', fimMes),
@@ -88,18 +88,25 @@ export default function Dashboard() {
           />
         ) : (
           <div className="sessoes-lista">
-            {sessoesHoje.map((sessao) => (
-              <div key={sessao.id} className="sessao-card">
-                <div className="sessao-hora">
-                  {new Date(sessao.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+            {sessoesHoje.map((sessao) => {
+              const local = sessao.academias?.nome || sessao.alunos?.local_treino
+              const objetivo = sessao.alunos?.objetivo
+              return (
+                <div key={sessao.id} className="sessao-card sessao-card-dashboard">
+                  <div className="sessao-hora">
+                    {new Date(sessao.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                  <div className="sessao-info">
+                    <span className="sessao-aluno">{sessao.alunos?.nome}</span>
+                    <div className="sessao-detalhes">
+                      {local && <span className="sessao-local-tag">📍 {local}</span>}
+                      {objetivo && <span className="sessao-objetivo-tag">{objetivo}</span>}
+                    </div>
+                  </div>
+                  <StatusBadge status={sessao.status} />
                 </div>
-                <div className="sessao-info">
-                  <span className="sessao-aluno">{sessao.alunos?.nome}</span>
-                  <span className="sessao-academia">{sessao.academias?.nome}</span>
-                </div>
-                <StatusBadge status={sessao.status} />
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </section>
