@@ -521,7 +521,7 @@
   font-family: 'DM Mono', monospace;
   font-size: 0.72rem;
   font-weight: 700;
-  color: #333;
+  color: #666;
   letter-spacing: 0.1em;
   margin-bottom: 16px;
 }
@@ -542,7 +542,7 @@
 
 .lw-problema-card p {
   font-size: 0.875rem;
-  color: #555;
+  color: #999;
   line-height: 1.7;
 }
 
