@@ -13,12 +13,14 @@ import AlunoDetalhe from './pages/AlunoDetalhe'
 import Configuracoes from './pages/Configuracoes'
 import Financeiro from './pages/Financeiro'
 import Onboarding from './pages/Onboarding'
+import InstallPWA from './components/InstallPWA'
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <ToastProvider>
+        <InstallPWA />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
