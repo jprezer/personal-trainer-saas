@@ -456,6 +456,153 @@
 
 .lw-stat-label { font-size: 0.8rem; color: #999; font-weight: 500; }
 
+/* ── Scroll Reveal ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-0 { transition-delay: 0s; }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+
+/* ── O Problema ── */
+.lw-problema {
+  background: #0f0f0f;
+  padding: 100px 40px;
+}
+
+.lw-problema-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.lw-section-tag-red {
+  color: #f87171 !important;
+  background: rgba(248, 113, 113, 0.1) !important;
+}
+
+.lw-grad-red {
+  background: linear-gradient(135deg, #f87171, #ef4444);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.lw-problema-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 48px;
+}
+
+.lw-problema-card {
+  background: #181818;
+  border: 1px solid #242424;
+  border-radius: 20px;
+  padding: 28px;
+  position: relative;
+  transition: border-color 0.2s;
+}
+
+.lw-problema-card:hover {
+  border-color: #333;
+}
+
+.lw-problema-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #333;
+  letter-spacing: 0.1em;
+  margin-bottom: 16px;
+}
+
+.lw-problema-icon {
+  font-size: 1.8rem;
+  margin-bottom: 14px;
+  display: block;
+  filter: grayscale(0.3);
+}
+
+.lw-problema-card h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #e5e5e5;
+  margin-bottom: 8px;
+}
+
+.lw-problema-card p {
+  font-size: 0.875rem;
+  color: #555;
+  line-height: 1.7;
+}
+
+/* ── A Solução ── */
+.lw-solucao {
+  background: #fff;
+  padding: 100px 40px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.lw-solucao-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.lw-solucao-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-top: 48px;
+}
+
+.lw-solucao-card {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  background: #fafafa;
+  border: 1px solid #ebebeb;
+  border-radius: 18px;
+  padding: 24px;
+  transition: all 0.25s;
+}
+
+.lw-solucao-card:hover {
+  border-color: rgba(5, 150, 105, 0.25);
+  background: rgba(5, 150, 105, 0.02);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(5, 150, 105, 0.06);
+}
+
+.lw-solucao-check {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.lw-solucao-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+}
+
+.lw-solucao-card p {
+  font-size: 0.875rem;
+  color: #666;
+  line-height: 1.65;
+}
+
 /* ── Section header ── */
 .lw-section-header { text-align: center; margin-bottom: 56px; }
 
@@ -793,6 +940,11 @@
   }
   .lw-stat { min-width: 45%; }
   .lw-stat + .lw-stat::before { display: none; }
+
+  .lw-problema { padding: 64px 20px; }
+  .lw-problema-grid { grid-template-columns: 1fr; gap: 12px; }
+  .lw-solucao { padding: 64px 20px; }
+  .lw-solucao-grid { grid-template-columns: 1fr; gap: 12px; }
 
   .lw-features { padding: 64px 20px; }
   .lw-bento {

@@ -1,9 +1,26 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useEffect } from 'react'
 import './LandingPage.css'
 
 export default function LandingPage() {
   const { user } = useAuth()
+
+  // ── Scroll reveal ──
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('reveal-visible')
+          }
+        })
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+    )
+    document.querySelectorAll('.reveal').forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [])
 
   return (
     <div className="lw">
@@ -133,16 +150,69 @@ export default function LandingPage() {
         ))}
       </div>
 
+      {/* ── O Problema ── */}
+      <section className="lw-problema">
+        <div className="lw-problema-inner">
+          <div className="lw-section-header reveal">
+            <div className="lw-section-tag lw-section-tag-red">O Problema</div>
+            <h2 style={{ color: '#fff' }}>A realidade de muitos<br /><span className="lw-grad-red">personal trainers</span></h2>
+            <p style={{ color: '#555' }}>Você se identifica com alguma dessas situações?</p>
+          </div>
+          <div className="lw-problema-grid">
+            {[
+              { n: '01', icon: '📱', title: 'Agenda no WhatsApp', desc: 'Confirmar aula por mensagem, lembrar horários de cabeça, conflitos sem querer. Um caos que toma seu tempo todo dia.' },
+              { n: '02', icon: '💸', title: 'Financeiro no escuro', desc: 'Não sabe quem pagou, anota em papel, esquece de cobrar. No fim do mês, você nunca sabe quanto realmente recebeu.' },
+              { n: '03', icon: '📋', title: 'Histórico inexistente', desc: 'Cada aluno em um caderno diferente. Sem dados de evolução, sem informações na ponta do dedo na hora que precisa.' },
+              { n: '04', icon: '⏰', title: 'Burocracia sem fim', desc: 'Mais tempo organizando do que treinando. A energia que deveria ir pro aluno vai toda pra planilha e pra anotação.' },
+            ].map((p, i) => (
+              <div key={i} className={`lw-problema-card reveal reveal-delay-${i}`}>
+                <div className="lw-problema-num">{p.n}</div>
+                <div className="lw-problema-icon">{p.icon}</div>
+                <h3>{p.title}</h3>
+                <p>{p.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── A Solução ── */}
+      <section className="lw-solucao">
+        <div className="lw-solucao-inner">
+          <div className="lw-section-header reveal">
+            <div className="lw-section-tag">A Solução</div>
+            <h2>Com o FitAgenda,<br /><span className="lw-grad-green">tudo isso muda</span></h2>
+            <p>Cada problema tem uma resposta direta. Simples assim.</p>
+          </div>
+          <div className="lw-solucao-grid">
+            {[
+              { icon: '✅', title: 'Agenda digital inteligente', desc: 'Visualize toda a sua semana, crie sessões em segundos. O sistema bloqueia conflitos automaticamente — zero sobreposição.' },
+              { icon: '✅', title: 'Financeiro em tempo real', desc: 'Sabe exatamente quem pagou, quem deve e quanto vai receber. Separa alunos mensais de avulsos. Sem surpresas.' },
+              { icon: '✅', title: 'Histórico completo por aluno', desc: 'Objetivo, dias de treino, sessões realizadas, observações — tudo num lugar. Acesse qualquer informação em 2 segundos.' },
+              { icon: '✅', title: '5 minutos por dia é suficiente', desc: 'O que levava horas agora é feito em minutos. Foco no que importa: treinar seus alunos com o máximo de atenção.' },
+            ].map((s, i) => (
+              <div key={i} className={`lw-solucao-card reveal reveal-delay-${i}`}>
+                <div className="lw-solucao-check">{s.icon}</div>
+                <div>
+                  <h3>{s.title}</h3>
+                  <p>{s.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Features Bento ── */}
       <section className="lw-features" id="funcionalidades">
-        <div className="lw-section-header">
+        <div className="lw-section-header reveal">
           <div className="lw-section-tag">Funcionalidades</div>
           <h2>Tudo que você precisa para<br /><span className="lw-grad-green">gerenciar seus alunos</span></h2>
           <p>Desenvolvido por quem entende a rotina de um personal trainer.</p>
         </div>
         <div className="lw-bento">
           {/* Coluna esquerda — Agenda tall */}
-          <div className="lw-bento-card lw-bento-tall lw-bento-green">
+          <div className="lw-bento-card lw-bento-tall lw-bento-green reveal reveal-delay-0">
             <div className="lw-bento-icon">📅</div>
             <h3>Agenda Semanal</h3>
             <p>Visualize sua semana completa, agende aulas e o sistema bloqueia automaticamente conflitos de horário entre alunos.</p>
@@ -176,7 +246,7 @@ export default function LandingPage() {
 
       {/* ── Steps ── */}
       <section className="lw-steps">
-        <div className="lw-section-header">
+        <div className="lw-section-header reveal">
           <div className="lw-section-tag">Como funciona</div>
           <h2>Comece em <span className="lw-grad-orange">3 passos</span></h2>
           <p>Configuração rápida para você começar a organizar sua rotina.</p>
