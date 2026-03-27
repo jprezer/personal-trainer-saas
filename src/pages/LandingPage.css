@@ -488,8 +488,8 @@
 
 .lw-bento {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: auto auto;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
   gap: 16px;
 }
 
@@ -501,6 +501,8 @@
   transition: all 0.25s ease;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .lw-bento-card:hover {
@@ -509,7 +511,11 @@
   border-color: #ddd;
 }
 
-.lw-bento-wide { grid-column: span 2; }
+/* Agenda ocupa as 2 linhas na coluna 1 */
+.lw-bento-tall { grid-row: span 2; }
+
+/* Empurra a tag pro fundo do card tall */
+.lw-bento-spacer { flex: 1; }
 
 .lw-bento-green {
   border-color: rgba(5, 150, 105, 0.15);
@@ -789,8 +795,11 @@
   .lw-stat + .lw-stat::before { display: none; }
 
   .lw-features { padding: 64px 20px; }
-  .lw-bento { grid-template-columns: 1fr; }
-  .lw-bento-wide { grid-column: span 1; }
+  .lw-bento {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: unset;
+  }
+  .lw-bento-tall { grid-row: span 1; grid-column: span 2; }
   .lw-section-header h2 { font-size: 1.7rem; }
 
   .lw-steps { padding: 64px 20px; }

@@ -141,12 +141,15 @@ export default function LandingPage() {
           <p>Desenvolvido por quem entende a rotina de um personal trainer.</p>
         </div>
         <div className="lw-bento">
-          <div className="lw-bento-card lw-bento-wide lw-bento-green">
+          {/* Coluna esquerda — Agenda tall */}
+          <div className="lw-bento-card lw-bento-tall lw-bento-green">
             <div className="lw-bento-icon">📅</div>
             <h3>Agenda Semanal</h3>
             <p>Visualize sua semana completa, agende aulas e o sistema bloqueia automaticamente conflitos de horário entre alunos.</p>
+            <div className="lw-bento-spacer" />
             <div className="lw-bento-tag">Anti-sobreposição</div>
           </div>
+          {/* 2×2 direita */}
           <div className="lw-bento-card lw-bento-orange">
             <div className="lw-bento-icon">📋</div>
             <h3>Gestão de Alunos</h3>
@@ -155,17 +158,17 @@ export default function LandingPage() {
           <div className="lw-bento-card">
             <div className="lw-bento-icon">💰</div>
             <h3>Controle Financeiro</h3>
-            <p>Faturamento mensal com separação entre alunos mensais e por aula.</p>
+            <p>Faturamento com separação entre alunos mensais e por aula.</p>
           </div>
           <div className="lw-bento-card">
             <div className="lw-bento-icon">🏋️</div>
             <h3>Multi-Academia</h3>
             <p>Trabalha em mais de um local? Cadastre todos e vincule cada aluno.</p>
           </div>
-          <div className="lw-bento-card lw-bento-wide">
+          <div className="lw-bento-card">
             <div className="lw-bento-icon">📱</div>
-            <h3>100% Mobile — Instale na tela inicial</h3>
-            <p>Interface responsiva otimizada para celular. Funciona como app nativo — instale direto na tela inicial, sem loja, sem burocracia.</p>
+            <h3>100% Mobile</h3>
+            <p>Instale direto na tela inicial do celular. Funciona como app nativo, sem loja.</p>
             <div className="lw-bento-tag lw-bento-tag-orange">PWA</div>
           </div>
         </div>
