@@ -6,13 +6,15 @@ import './LandingPage.css'
 export default function LandingPage() {
   const { user } = useAuth()
 
-  // ── Scroll reveal ──
+  // ── Scroll reveal (bidirecional) ──
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add('reveal-visible')
+          } else {
+            entry.target.classList.remove('reveal-visible')
           }
         })
       },
