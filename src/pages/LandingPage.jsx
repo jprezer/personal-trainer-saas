@@ -1,10 +1,51 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import './LandingPage.css'
 
 export default function LandingPage() {
   const { user } = useAuth()
+
+  const mockupRef = useRef(null)
+  const visualRef = useRef(null)
+
+  // ── Mockup 3D tilt ──
+  useEffect(() => {
+    const container = visualRef.current
+    const el = mockupRef.current
+    if (!container || !el) return
+
+    const handleMove = (e) => {
+      const rect = el.getBoundingClientRect()
+      const cx = rect.left + rect.width / 2
+      const cy = rect.top + rect.height / 2
+      const dx = (e.clientX - cx) / (rect.width / 2)
+      const dy = (e.clientY - cy) / (rect.height / 2)
+      const rotY = Math.max(-18, Math.min(18, dx * 14))
+      const rotX = Math.max(-12, Math.min(12, -dy * 10))
+      el.style.transform = `perspective(1200px) rotateY(${rotY}deg) rotateX(${rotX}deg) scale(1.03)`
+      const shine = el.querySelector('.lw-mockup-shine')
+      if (shine) {
+        const px = ((e.clientX - rect.left) / rect.width) * 100
+        const py = ((e.clientY - rect.top) / rect.height) * 100
+        shine.style.background = `radial-gradient(circle at ${px}% ${py}%, rgba(255,255,255,0.1) 0%, transparent 60%)`
+        shine.style.opacity = '1'
+      }
+    }
+
+    const handleLeave = () => {
+      el.style.transform = 'perspective(1200px) rotateY(-4deg) rotateX(2deg) scale(1)'
+      const shine = el.querySelector('.lw-mockup-shine')
+      if (shine) shine.style.opacity = '0'
+    }
+
+    container.addEventListener('mousemove', handleMove)
+    container.addEventListener('mouseleave', handleLeave)
+    return () => {
+      container.removeEventListener('mousemove', handleMove)
+      container.removeEventListener('mouseleave', handleLeave)
+    }
+  }, [])
 
   // ── Scroll reveal (bidirecional) ──
   useEffect(() => {
@@ -72,7 +113,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div className="lw-hero-visual">
+        <div className="lw-hero-visual" ref={visualRef}>
           {/* Badge flutuante esquerdo */}
           <div className="lw-float-badge lw-float-left">
             <span className="lw-float-icon lw-float-green">✓</span>
@@ -82,7 +123,8 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="lw-mockup">
+          <div className="lw-mockup" ref={mockupRef}>
+            <div className="lw-mockup-shine"></div>
             <div className="lw-mockup-bar">
               <span className="dot r"></span><span className="dot y"></span><span className="dot g"></span>
               <span className="lw-mockup-title">FitAgenda</span>

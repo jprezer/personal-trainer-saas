@@ -326,12 +326,20 @@
     0 0 0 1px rgba(0, 0, 0, 0.05);
   position: relative;
   z-index: 2;
-  transform: perspective(1200px) rotateY(-4deg) rotateX(2deg);
-  transition: transform 0.4s ease;
+  transform: perspective(1200px) rotateY(-4deg) rotateX(2deg) scale(1);
+  transition: transform 0.08s ease-out;
+  cursor: default;
+  will-change: transform;
 }
 
-.lw-mockup:hover {
-  transform: perspective(1200px) rotateY(-1deg) rotateX(0deg);
+.lw-mockup-shine {
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 10;
 }
 
 .lw-mockup-bar {
@@ -929,8 +937,8 @@
   .lw-hero-actions { flex-direction: column; align-items: center; }
   .lw-hero-visual { order: -1; }
   .lw-social-proof { justify-content: center; }
-  .lw-mockup { max-width: 320px; transform: none; }
-  .lw-mockup:hover { transform: none; }
+  .lw-mockup { max-width: 320px; transform: none !important; transition: none !important; }
+  .lw-mockup-shine { display: none; }
   .lw-float-badge { display: none; }
 
   .lw-stats {
